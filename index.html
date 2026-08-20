@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DEMO 1 Class Manager — AY 2026–2027</title>
+<style>
+:root {
+  --bg:#f4f6f9; --panel:#fff; --text:#182230; --muted:#667085; --line:#dfe3e8;
+  --accent:#7b1113; --accent2:#ad1f24; --ok:#16803c; --warn:#8a5a00; --danger:#b42318;
+  --shadow:0 6px 24px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,select,input{font:inherit}
+header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 2px 12px rgba(0,0,0,.05)}
+.header-inner{max-width:1450px;margin:auto;padding:14px 20px;display:flex;justify-content:space-between;gap:16px;align-items:center}
+.brand h1{font-size:21px;margin:0} .brand p{margin:3px 0 0;color:var(--muted);font-size:13px}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.status{font-size:13px;color:var(--muted)} .status.ok{color:var(--ok)} .status.err{color:var(--danger)}
+main{max-width:1450px;margin:auto;padding:20px}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab{border:1px solid var(--line);background:#fff;border-radius:9px;padding:10px 15px;cursor:pointer}
+.tab.active{background:#111827;color:#fff;border-color:#111827}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px}
+.toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+.controls{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+select,input[type=date]{border:1px solid #cbd1d9;border-radius:8px;padding:9px 10px;background:#fff}
+button.action{border:0;border-radius:8px;padding:9px 13px;cursor:pointer}
+button.primary{background:var(--accent);color:#fff} button.secondary{background:#eef2f6;color:#263241}
+button.danger{background:#fff0f0;color:var(--danger)}
+.notice{border:1px solid #f0d48a;background:#fff9e9;color:#754c00;padding:11px 13px;border-radius:10px;margin-bottom:14px;font-size:13px}
+.notice.info{border-color:#b7d7ff;background:#eff7ff;color:#164b7a}
+.hidden{display:none!important}
+.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:14px}
+.card{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.photo{aspect-ratio:4/5;background:#edf0f5;display:flex;align-items:center;justify-content:center}
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.card-body{padding:12px}
+.nick{font-size:18px;font-weight:760;line-height:1.1}
+.fullname{font-weight:650;margin-top:4px}
+.program{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.25}
+.sid{font-size:12px;color:var(--muted);margin-top:5px}
+.badge{display:inline-block;font-size:10px;font-weight:700;border-radius:999px;padding:3px 7px;background:#f1f3f5;color:#586174;margin-top:8px}
+.badge.warn{background:#fff3cf;color:#875b00}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:max-content;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:8px 9px;text-align:center;white-space:nowrap}
+thead th{background:#f7f8fa;font-size:12px;position:sticky;top:0;z-index:3}
+th:first-child,td:first-child{position:sticky;left:0;background:#fff;z-index:4;text-align:left;min-width:255px}
+thead th:first-child{z-index:6;background:#f7f8fa}
+.student-name{font-weight:650} .student-sub{font-size:11px;color:var(--muted);margin-top:2px}
+input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
+.date-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.date-pill{border:1px solid var(--line);border-radius:999px;padding:5px 9px;background:#fafbfc;display:inline-flex;gap:7px;align-items:center;font-size:12px}
+.date-pill button{border:0;background:transparent;color:var(--danger);cursor:pointer;padding:0 2px}
+.login{max-width:520px;margin:80px auto;text-align:center}
+.login h1{margin-top:0} .login p{color:var(--muted);line-height:1.45}
+#authError{margin-top:12px}
+.error{border:1px solid #f0b7b1;background:#fff2f0;color:var(--danger);padding:10px 12px;border-radius:9px}
+.footer-note{margin-top:14px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+
+<div id="loginScreen" class="login panel">
+  <h1>DEMO 1 Class Manager</h1>
+  <p>Demo 1 THU · Class Code 45202 · AY 2026–2027</p>
+  <p>Sign in with your UP Google account to access the class manager.</p>
+  <button id="signInBtn" class="action primary">Sign in with Google</button>
+  <div id="authError" class="error hidden"></div>
+</div>
+
+<div id="app" class="hidden">
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <h1>DEMO 1 Class Manager</h1>
+      <p>Demo 1 THU · Class Code 45202 · Thursday 10:00–11:30 AM · AY 2026–2027</p>
+    </div>
+    <div class="header-right">
+      <span id="userLabel" class="status"></span>
+      <span id="syncStatus" class="status">Cloud disconnected</span>
+      <button id="signOutBtn" class="action secondary">Sign out</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="rosterNotice" class="notice"></div>
+  <div class="tabs">
+    <button id="rosterTab" class="tab active">Photo Roster</button>
+    <button id="attendanceTab" class="tab">Attendance Tracker</button>
+  </div>
+
+  <section id="rosterView" class="panel">
+    <div class="toolbar">
+      <strong>Faces &amp; Names — 20 enrolled students</strong>
+      <div class="controls">
+        <label>Sort by
+          <select id="sortField">
+            <option value="lastName">Last Name</option>
+            <option value="firstName">First Name</option>
+            <option value="nickname">Nickname</option>
+            <option value="studentNumber">Student Number</option>
+            <option value="program">Degree Program</option>
+          </select>
+        </label>
+        <label>Order
+          <select id="sortDirection">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </label>
+      </div>
+    </div>
+    <div id="roster" class="roster"></div>
+    <div class="footer-note">The two students who did not submit the Google Form are retained from the CRS enrollment roster and receive generated fallback avatars until photographs are supplied.</div>
+  </section>
+
+  <section id="attendanceView" class="panel hidden">
+    <div class="toolbar">
+      <div>
+        <strong>Attendance Tracker</strong>
+        <div class="status">Attendance is stored in Firestore and keyed by student number.</div>
+      </div>
+      <div class="controls">
+        <input id="classDateInput" type="date" aria-label="Class date">
+        <button id="addDateBtn" class="action primary">Add class date</button>
+      </div>
+    </div>
+
+    <div class="notice info">
+      Add the actual DEMO 1 meeting dates here. Dates are stored in the DEMO 1 Firestore document and will appear for you on every device after signing in with the same account.
+    </div>
+    <div id="datePills" class="date-row" style="margin-bottom:14px;"></div>
+    <div class="table-wrap">
+      <table id="attendanceTable"></table>
+    </div>
+  </section>
+</main>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
+import {
+  getFirestore, doc, onSnapshot, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
+
+// ============================================================
+// DEMO 1 CLASS CONFIGURATION
+// ============================================================
+const CLASS_ID = "demo1_2026_2027";
+const CLASS_NAME = "Demo 1 THU";
+const CLASS_CODE = "45202";
+const ACADEMIC_YEAR = "2026–2027";
+const ALLOWED_EMAIL_DOMAIN = "@up.edu.ph";
+
+// Paste the Web App configuration from Firebase Project Settings.
+// This is the browser Web App config, NOT a service-account key.
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyALzc-ge-8Fm-W15LdrtJ0XclBGuwYC8VM",
+  authDomain: "cwts1-thx-1s-2627.firebaseapp.com",
+  projectId: "cwts1-thx-1s-2627",
+  storageBucket: "cwts1-thx-1s-2627.firebasestorage.app",
+  messagingSenderId: "43556961099",
+  appId: "1:43556961099:web:c429f75e12ff30c75846ce",
+  measurementId: "G-Y1F6BVCGH8"
+};
+
+const students = [{"studentNumber":"202314601","lastName":"Aga","firstName":"Rebecca","middleName":"Alvarez","nickname":"Rebie","program":"Non-Major (Previously BS Materials Engineering)","photoFileId":"1GT0t6gsKdu6dUqKaRayskmc50B3jQpni","source":"google_form"},{"studentNumber":"202303665","lastName":"Albia","firstName":"Louise Arwin","middleName":"Alimodian","nickname":"Arwin","program":"Non-Major (BS Civil Engg)","photoFileId":"1UNenTTHSM7hZ8r6T9LitVWF6h5IADpiv","source":"google_form"},{"studentNumber":"202501589","lastName":"Cado","firstName":"Gerald Andrei","middleName":"Loteria","nickname":"","program":"BA (Political Science)","photoFileId":"","source":"crs_only"},{"studentNumber":"202205999","lastName":"Camarillo","firstName":"Luis Alfonso","middleName":"L.","nickname":"Cama","program":"BS Physics","photoFileId":"1ti7wM5DibcihAqRx8bbbyhRC98DiMFwc","source":"google_form"},{"studentNumber":"202306025","lastName":"Casabar","firstName":"Brian Carl","middleName":"Carasag","nickname":"","program":"Non-Major (Engg)","photoFileId":"","source":"crs_only"},{"studentNumber":"202409536","lastName":"Catindig","firstName":"Jasmine Anne","middleName":"Fernando","nickname":"Jaz","program":"BA Journalism","photoFileId":"1_He03plvkZo-nkKgxZW7T3X1Tl_c-Elo","source":"google_form"},{"studentNumber":"202508872","lastName":"Cleofas","firstName":"Rian Allison","middleName":"","nickname":"Rian","program":"BS Social Work","photoFileId":"1YI577lRFBhAPQ_6xC5IGQnBWOYypBAFa","source":"google_form"},{"studentNumber":"202311531","lastName":"Dimapasoc","firstName":"Reign Yvonne","middleName":"Gaa","nickname":"Rei","program":"Non-Major (BS Geodetic Engineering)","photoFileId":"10IjxvgBhigAB9EK_KvEXCbd9cgH3IN_a","source":"google_form"},{"studentNumber":"202510867","lastName":"Estavillo","firstName":"Nathaniel James","middleName":"Domingo","nickname":"Nat","program":"BA Creative Writing","photoFileId":"1clUIR9R0QnB9gUm-WaOy6O91Ra9MJCh9","source":"google_form"},{"studentNumber":"202506545","lastName":"Fontanilla","firstName":"Niko Rhoy","middleName":"Ramos","nickname":"Niko","program":"BA Political Science","photoFileId":"1VJNBIhoR2Rg_VdkV22ERKl1rCNJjK6OK","source":"google_form"},{"studentNumber":"202501263","lastName":"Galla","firstName":"Andre Michael Gabrielle","middleName":"Roque","nickname":"Drey","program":"BA Political Science","photoFileId":"1iCp9giuQtHBOAJ1GSzQMfH9zo_69qU2y","source":"google_form"},{"studentNumber":"202509826","lastName":"Gianan","firstName":"Samantha Nicole","middleName":"Sural","nickname":"Sam","program":"BS Mechanical Engineering","photoFileId":"1vqbK7ptplkkFWLJcYvjmuIkvSqyEFmr5","source":"google_form"},{"studentNumber":"202401426","lastName":"Hautea","firstName":"Thomas Nathan","middleName":"Tan","nickname":"Nate","program":"BS Geography","photoFileId":"1xKIejLZ2mC55pm4Or3ElcMtQXrJF3Jbc","source":"google_form"},{"studentNumber":"202511370","lastName":"Justiniani","firstName":"Mary Rolyn","middleName":"Castor","nickname":"Rolyn","program":"BS Architecture","photoFileId":"1l8dxAPHozrjKkiPMIH4JyvPJiokzebvg","source":"google_form"},{"studentNumber":"202413924","lastName":"Ojano","firstName":"Gabriella Yzabel","middleName":"Juaton","nickname":"Gab","program":"BA Linguistics","photoFileId":"1b1j-o5AGUFiRP8ch9QDcfyXuxv03s8lR","source":"google_form"},{"studentNumber":"202505366","lastName":"Pineda","firstName":"Mike Chester","middleName":"Alfaro","nickname":"Chester","program":"BA Political Science","photoFileId":"1Bzwe_iDQ6hX57C4Zu-dtIwjdQPBs_3tx","source":"google_form"},{"studentNumber":"202414458","lastName":"Raoet","firstName":"Lorvy Loren","middleName":"Gaviola","nickname":"Ren","program":"BA Linguistics","photoFileId":"1gcf8QHuy146crPHEcrrNAmsl_ct-7p9N","source":"google_form"},{"studentNumber":"202503330","lastName":"Sta. Catalina","firstName":"Dennis Gabriel","middleName":"Valenzuela","nickname":"Dennis","program":"BS Statistics","photoFileId":"1GqEHrupqrBXPMgVmuAJ9RHON0YvrrrU1","source":"google_form"},{"studentNumber":"202400707","lastName":"Umal","firstName":"Aeia","middleName":"Gonzalves","nickname":"Aya","program":"BA Linguistics","photoFileId":"1397Uki33kBArKr6n12g49P-Onps-_FcM","source":"google_form"},{"studentNumber":"202500527","lastName":"Yumul","firstName":"John Melchiezidek","middleName":"Viray","nickname":"JM","program":"BA Political Science","photoFileId":"1nHV_ZqAbFgOxl58dFDS5rKpcexUnWy1I","source":"google_form"}];
+
+// ============================================================
+// APPLICATION STATE
+// ============================================================
+let currentUser = null;
+let db = null;
+let unsubscribeClass = null;
+let attendance = {};
+let classDates = [];
+
+const $ = id => document.getElementById(id);
+
+function configIsReady() {
+  return Object.values(firebaseConfig).every(v =>
+    typeof v === "string" &&
+    v.trim() &&
+    !v.includes("PASTE_YOUR_")
+  );
+}
+
+function setSync(text, state="") {
+  const el = $("syncStatus");
+  el.textContent = text;
+  el.className = "status " + state;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function fullName(s) {
+  return [s.firstName, s.middleName, s.lastName].filter(Boolean).join(" ");
+}
+
+function avatarUrl(s) {
+  const name = encodeURIComponent(s.nickname || fullName(s));
+  return `https://ui-avatars.com/api/?name=${name}&size=800&background=e9eef8&color=23335b&bold=true`;
+}
+
+function photoUrl(s) {
+  return `https://drive.google.com/thumbnail?id=${encodeURIComponent(s.photoFileId)}&sz=w800`;
+}
+
+function sortedStudents() {
+  const field = $("sortField").value;
+  const dir = $("sortDirection").value === "asc" ? 1 : -1;
+  return [...students].sort((a,b) =>
+    String(a[field] ?? "").localeCompare(String(b[field] ?? ""), undefined,
+      {numeric:true, sensitivity:"base"}) * dir
+  );
+}
+
+function renderRoster() {
+  const root = $("roster");
+  root.innerHTML = "";
+  for (const s of sortedStudents()) {
+    const card = document.createElement("article");
+    card.className = "card";
+
+    const photoDiv = document.createElement("div");
+    photoDiv.className = "photo";
+    const img = document.createElement("img");
+    img.loading = "lazy";
+    img.alt = fullName(s);
+    if (s.photoFileId) {
+      img.src = photoUrl(s);
+      img.addEventListener("error", () => {
+        img.onerror = null;
+        img.src = avatarUrl(s);
+      });
+    } else {
+      img.src = avatarUrl(s);
+    }
+    photoDiv.appendChild(img);
+
+    const body = document.createElement("div");
+    body.className = "card-body";
+    body.innerHTML = `
+      <div class="nick">${escapeHtml(s.nickname || "—")}</div>
+      <div class="fullname">${escapeHtml(fullName(s))}</div>
+      <div class="program">${escapeHtml(s.program)}</div>
+      <div class="sid">Student No. ${escapeHtml(s.studentNumber)}</div>
+      ${s.source === "crs_only"
+        ? '<span class="badge warn">CRS enrollment only — no Form photo</span>'
+        : '<span class="badge">Google Form profile</span>'}
+    `;
+    card.append(photoDiv, body);
+    root.appendChild(card);
+  }
+}
+
+function formatDate(dateString) {
+  const d = new Date(dateString + "T00:00:00");
+  return new Intl.DateTimeFormat("en-PH", {
+    weekday:"short", month:"short", day:"numeric", year:"numeric"
+  }).format(d);
+}
+
+function shortDate(dateString) {
+  const d = new Date(dateString + "T00:00:00");
+  return new Intl.DateTimeFormat("en-PH", {
+    month:"short", day:"numeric"
+  }).format(d);
+}
+
+function renderDatePills() {
+  const root = $("datePills");
+  root.innerHTML = "";
+  if (!classDates.length) {
+    root.innerHTML = '<span class="status">No class dates have been added yet.</span>';
+    return;
+  }
+  for (const date of classDates) {
+    const pill = document.createElement("span");
+    pill.className = "date-pill";
+    pill.innerHTML = `${escapeHtml(formatDate(date))} <button title="Remove date" aria-label="Remove ${escapeHtml(formatDate(date))}">×</button>`;
+    pill.querySelector("button").addEventListener("click", () => removeClassDate(date));
+    root.appendChild(pill);
+  }
+}
+
+function renderAttendance() {
+  renderDatePills();
+  const table = $("attendanceTable");
+  table.innerHTML = "";
+
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  const nameTh = document.createElement("th");
+  nameTh.textContent = "Student Name";
+  headRow.appendChild(nameTh);
+
+  for (const date of classDates) {
+    const th = document.createElement("th");
+    th.textContent = shortDate(date);
+    th.title = formatDate(date);
+    headRow.appendChild(th);
+  }
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  for (const s of sortedStudents()) {
+    const tr = document.createElement("tr");
+    const nameTd = document.createElement("td");
+    nameTd.innerHTML = `<div class="student-name">${escapeHtml(s.lastName)}, ${escapeHtml([s.firstName,s.middleName].filter(Boolean).join(" "))}</div>
+                        <div class="student-sub">${escapeHtml(s.studentNumber)}</div>`;
+    tr.appendChild(nameTd);
+
+    for (const date of classDates) {
+      const td = document.createElement("td");
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = Boolean(attendance?.[s.studentNumber]?.[date]);
+      cb.setAttribute("aria-label", `Attendance for ${fullName(s)} on ${formatDate(date)}`);
+      cb.addEventListener("change", () =>
+        setAttendance(s.studentNumber, date, cb.checked)
+      );
+      td.appendChild(cb);
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+}
+
+function classDoc() {
+  return doc(db, "classes", CLASS_ID);
+}
+
+function isAuthorizedUser(user) {
+  return Boolean(
+    user?.email &&
+    user.email_verified &&
+    user.email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN)
+  );
+}
+
+async function saveClassState(extra={}) {
+  if (!currentUser || !db) return;
+  setSync("Saving...");
+  try {
+    await setDoc(classDoc(), {
+      class: CLASS_NAME,
+      classCode: CLASS_CODE,
+      academicYear: ACADEMIC_YEAR,
+      attendance,
+      classDates,
+      updatedAt: serverTimestamp(),
+      updatedBy: currentUser.uid,
+      ...extra
+    }, {merge:true});
+    // onSnapshot normally changes this to Cloud synced; this is a fast fallback.
+    setSync("Cloud synced", "ok");
+  } catch (err) {
+    console.error(err);
+    setSync("Cloud connection error", "err");
+    alert("Cloud save failed. Check Firestore rules, authentication, and internet connectivity.");
+  }
+}
+
+async function setAttendance(studentNumber, date, checked) {
+  if (!attendance[studentNumber]) attendance[studentNumber] = {};
+  attendance[studentNumber][date] = checked;
+  await saveClassState();
+}
+
+async function addClassDate() {
+  const date = $("classDateInput").value;
+  if (!date) return;
+  if (!classDates.includes(date)) {
+    classDates = [...classDates, date].sort();
+    await saveClassState();
+    renderAttendance();
+  }
+  $("classDateInput").value = "";
+}
+
+async function removeClassDate(date) {
+  if (!confirm(`Remove ${formatDate(date)} from the attendance tracker? Existing attendance values for that date will also be removed.`)) return;
+  classDates = classDates.filter(d => d !== date);
+  for (const studentNumber of Object.keys(attendance)) {
+    if (attendance[studentNumber]) delete attendance[studentNumber][date];
+  }
+  await saveClassState();
+  renderAttendance();
+}
+
+function subscribeClassState() {
+  if (unsubscribeClass) unsubscribeClass();
+  setSync("Connecting...");
+  unsubscribeClass = onSnapshot(classDoc(), snapshot => {
+    if (snapshot.exists()) {
+      const data = snapshot.data();
+      attendance = data.attendance || {};
+      classDates = Array.isArray(data.classDates) ? data.classDates.slice().sort() : [];
+    } else {
+      attendance = {};
+      classDates = [];
+    }
+    setSync("Cloud synced", "ok");
+    renderAttendance();
+  }, err => {
+    console.error(err);
+    setSync("Cloud connection error", "err");
+  });
+}
+
+$("sortField").addEventListener("change", () => {
+  renderRoster();
+  renderAttendance();
+});
+$("sortDirection").addEventListener("change", () => {
+  renderRoster();
+  renderAttendance();
+});
+
+$("rosterTab").addEventListener("click", () => {
+  $("rosterTab").classList.add("active");
+  $("attendanceTab").classList.remove("active");
+  $("rosterView").classList.remove("hidden");
+  $("attendanceView").classList.add("hidden");
+});
+$("attendanceTab").addEventListener("click", () => {
+  $("attendanceTab").classList.add("active");
+  $("rosterTab").classList.remove("active");
+  $("rosterView").classList.add("hidden");
+  $("attendanceView").classList.remove("hidden");
+  renderAttendance();
+});
+$("addDateBtn").addEventListener("click", addClassDate);
+
+$("signInBtn").addEventListener("click", async () => {
+  $("authError").classList.add("hidden");
+  try {
+    const auth = getAuth();
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({login_hint:"@up.edu.ph"});
+    const result = await signInWithPopup(auth, provider);
+    if (!isAuthorizedUser(result.user)) {
+      await signOut(auth);
+      throw new Error("Only verified @up.edu.ph Google accounts are authorized for this class manager.");
+    }
+  } catch (err) {
+    console.error(err);
+    $("authError").textContent = err?.message || "Google sign-in failed.";
+    $("authError").classList.remove("hidden");
+  }
+});
+
+$("signOutBtn").addEventListener("click", () => signOut(getAuth()));
+
+function showSetupError() {
+  $("loginScreen").querySelector("p:nth-of-type(2)").textContent =
+    "Firebase configuration is not filled in yet. Paste the Web App configuration below before deploying.";
+  $("signInBtn").disabled = true;
+  $("signInBtn").style.opacity = ".55";
+  $("authError").textContent =
+    "Open index.html and replace the five firebaseConfig placeholder values with the Web App configuration from Firebase Project Settings.";
+  $("authError").classList.remove("hidden");
+}
+
+renderRoster();
+
+if (!configIsReady()) {
+  showSetupError();
+} else {
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  db = getFirestore(app);
+
+  onAuthStateChanged(auth, user => {
+    currentUser = user;
+    if (!user) {
+      $("loginScreen").classList.remove("hidden");
+      $("app").classList.add("hidden");
+      if (unsubscribeClass) unsubscribeClass();
+      setSync("Cloud disconnected");
+      return;
+    }
+
+    if (!isAuthorizedUser(user)) {
+      signOut(auth);
+      $("authError").textContent =
+        "This account is not authorized. Please sign in with your verified @up.edu.ph account.";
+      $("authError").classList.remove("hidden");
+      return;
+    }
+
+    $("loginScreen").classList.add("hidden");
+    $("app").classList.remove("hidden");
+    $("userLabel").textContent = user.email;
+    $("rosterNotice").textContent =
+      "Roster validated against the CRS enrollment screenshot: 20 students. 18 supplied Google Form profiles/photos; 2 are retained from CRS because they did not submit the Form.";
+    subscribeClassState();
+    renderRoster();
+    renderAttendance();
+  });
+}
+</script>
+</body>
+</html>
