@@ -14,16 +14,16 @@
 body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 button,select,input{font:inherit}
 header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 2px 12px rgba(0,0,0,.05)}
-.header-inner{max-width:1450px;margin:auto;padding:14px 20px;display:flex;justify-content:space-between;gap:16px;align-items:center}
+.header-inner{width:100%;max-width:none;margin:0;padding:12px 18px;display:flex;justify-content:space-between;gap:16px;align-items:center}
 .brand h1{font-size:21px;margin:0} .brand p{margin:3px 0 0;color:var(--muted);font-size:13px}
 .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .status{font-size:13px;color:var(--muted)} .status.ok{color:var(--ok)} .status.err{color:var(--danger)}
-main{max-width:1450px;margin:auto;padding:20px}
+main{width:100%;max-width:none;margin:0;padding:8px}
 .tabs{display:flex;gap:8px;margin-bottom:14px}
 .tab{border:1px solid var(--line);background:#fff;border-radius:9px;padding:10px 15px;cursor:pointer}
 .tab.active{background:#111827;color:#fff;border-color:#111827}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px}
-.toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:10px}
+.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:8px}
 .controls{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
 select,input[type=date]{border:1px solid #cbd1d9;border-radius:8px;padding:9px 10px;background:#fff}
 button.action{border:0;border-radius:8px;padding:9px 13px;cursor:pointer}
@@ -47,8 +47,8 @@ button.danger{background:#fff0f0;color:var(--danger)}
 /* Whole-class overview: portrait photo cards plus a dedicated control rail. */
 .roster-layout{
   display:grid;
-  grid-template-columns:180px minmax(0,1fr);
-  gap:16px;
+  grid-template-columns:155px minmax(0,1fr);
+  gap:10px;
   align-items:stretch;
 }
 .roster-controls{max-height:100%;overflow:auto;
@@ -138,23 +138,23 @@ button.danger{background:#fff0f0;color:var(--danger)}
   display:grid;
   grid-template-columns:repeat(5,minmax(0,1fr));
   grid-template-rows:repeat(4,minmax(0,1fr));
-  gap:10px;
+  gap:7px;
   width:100%;
-  height:calc(100vh - 195px);
-  min-height:650px;
+  height:calc(100vh - 125px);
+  min-height:700px;
   max-height:none;
   overflow:hidden;
 }
 .overview-card{
   border:1px solid var(--line);
-  border-radius:10px;
+  border-radius:8px;
   overflow:hidden;
   background:#fff;
   display:flex;
   flex-direction:column;
   min-width:0;
   min-height:0;
-  box-shadow:0 1px 3px rgba(0,0,0,.05);
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
 }
 .overview-photo{
   flex:1 1 auto;
@@ -164,7 +164,7 @@ button.danger{background:#fff0f0;color:var(--danger)}
   align-items:center;
   justify-content:center;
   overflow:hidden;
-  padding:3px;
+  padding:2px;
 }
 .overview-photo img{
   display:block;
@@ -174,7 +174,7 @@ button.danger{background:#fff0f0;color:var(--danger)}
   aspect-ratio:4 / 5;
   object-fit:cover;
   object-position:center;
-  border-radius:5px;
+  border-radius:4px;
 }
 .overview-fallback{
   width:100%!important;
@@ -186,9 +186,9 @@ button.danger{background:#fff0f0;color:var(--danger)}
   padding:14%!important;
 }
 .overview-info{
-  flex:0 0 34px;
+  flex:0 0 28px;
   min-width:0;
-  padding:5px 8px;
+  padding:4px 7px;
   background:#fff;
   border-top:1px solid #edf0f3;
   display:flex;
@@ -196,7 +196,7 @@ button.danger{background:#fff0f0;color:var(--danger)}
   justify-content:center;
 }
 .overview-name{
-  font-size:13px;
+  font-size:12px;
   font-weight:800;
   line-height:1.1;
   white-space:nowrap;
@@ -212,7 +212,7 @@ button.danger{background:#fff0f0;color:var(--danger)}
 }
 
 @media (max-width: 1050px){
-  .roster-layout{grid-template-columns:150px minmax(0,1fr);gap:12px}
+  .roster-layout{grid-template-columns:145px minmax(0,1fr);gap:8px}
   .class-overview{
     height:auto;
     min-height:520px;
