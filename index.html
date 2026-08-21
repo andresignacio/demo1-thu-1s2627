@@ -51,7 +51,7 @@ button.danger{background:#fff0f0;color:var(--danger)}
   gap:16px;
   align-items:stretch;
 }
-.roster-controls{
+.roster-controls{max-height:100%;overflow:auto;
   border:1px solid var(--line);
   border-radius:10px;
   background:#f8f9fb;
@@ -67,6 +67,52 @@ button.danger{background:#fff0f0;color:var(--danger)}
   color:#475467;
   text-transform:uppercase;
   letter-spacing:.04em;
+}
+.class-nav{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+.side-nav-btn{
+  width:100%;
+  border:1px solid #d0d5dd;
+  background:#fff;
+  color:#344054;
+  border-radius:8px;
+  padding:9px 10px;
+  text-align:left;
+  font-weight:700;
+  font-size:12px;
+  cursor:pointer;
+}
+.side-nav-btn:hover{background:#f2f4f7}
+.side-nav-btn.active{
+  background:#111827;
+  color:#fff;
+  border-color:#111827;
+}
+.attendance-layout{
+  display:grid;
+  grid-template-columns:180px minmax(0,1fr);
+  gap:16px;
+  align-items:stretch;
+}
+.attendance-side-menu{
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#f8f9fb;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  align-self:start;
+}
+.attendance-main{min-width:0}
+.roster-controls .roster-notice{
+  margin:0;
+  padding:8px 9px;
+  font-size:10px;
+  line-height:1.35;
 }
 .roster-controls label{
   display:flex;
@@ -167,14 +213,25 @@ button.danger{background:#fff0f0;color:var(--danger)}
   .overview-name{font-size:12px}
 }
 @media (max-width: 800px){
-  .roster-layout{display:block}
+  .roster-layout,.attendance-layout{display:block}
   .roster-controls{
     display:grid;
     grid-template-columns:repeat(3,minmax(0,1fr));
     align-items:end;
     margin-bottom:10px;
   }
+  .class-nav{
+    grid-column:1 / -1;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
   .roster-controls .view-note{display:none}
+  .attendance-side-menu{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    margin-bottom:10px;
+  }
+  .attendance-side-menu .control-title{grid-column:1 / -1}
   .class-overview{
     grid-template-columns:repeat(4,minmax(0,1fr));
     grid-template-rows:repeat(5,minmax(0,1fr));
@@ -245,16 +302,17 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
 </header>
 
 <main>
-  <div id="rosterNotice" class="notice"></div>
-  <div class="tabs">
-    <button id="rosterTab" class="tab active">Photo Roster</button>
-    <button id="attendanceTab" class="tab">Attendance Tracker</button>
-  </div>
-
   <section id="rosterView" class="panel">
     <div class="roster-layout">
       <aside class="roster-controls">
-        <div class="control-title">Class View</div>
+        <div class="control-title">Class Menu</div>
+
+        <div class="class-nav">
+          <button id="rosterTab" class="side-nav-btn active">Photo Roster</button>
+          <button id="attendanceTab" class="side-nav-btn">Attendance Tracker</button>
+        </div>
+
+        <div class="control-title" style="margin-top:8px;">Roster View</div>
 
         <label>View
           <select id="rosterViewMode">
@@ -280,9 +338,12 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
           </select>
         </label>
 
+        <div id="rosterNotice" class="notice roster-notice">Roster validated against the CRS enrollment roster: 20 students; 18 supplied Google Form profiles/photos; 2 are retained from CRS because they did not submit the Form.</div>
+
         <div class="view-note">
           <strong>Class Overview</strong><br>
-          Portrait photos are enlarged to use the available pane. Names show nickname + last name.
+          Portrait photos use the available pane. Names show nickname + last name.
+          Two CRS-enrolled students did not submit the Google Form and use fallback avatars until photographs are supplied.
         </div>
       </aside>
 
@@ -291,10 +352,16 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
         <div id="rosterOverview" class="class-overview roster-overview"></div>
       </div>
     </div>
-    <div class="footer-note">Class Overview is optimized for whole-class recognition; Photo Roster provides the larger individual-photo view. Two CRS-enrolled students did not submit the Google Form and therefore use fallback avatars until photographs are supplied.</div>
   </section>
 
   <section id="attendanceView" class="panel hidden">
+    <div class="attendance-layout">
+      <aside class="attendance-side-menu">
+        <div class="control-title">Class Menu</div>
+        <button id="attendanceRosterBtn" class="side-nav-btn">Photo Roster</button>
+        <button id="attendanceSelfBtn" class="side-nav-btn active">Attendance Tracker</button>
+      </aside>
+      <div class="attendance-main">
     <div class="toolbar">
       <div>
         <strong>Attendance Tracker</strong>
@@ -306,6 +373,8 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
     </div>
     <div class="table-wrap">
       <table id="attendanceTable"></table>
+    </div>
+      </div>
     </div>
   </section>
 </main>
@@ -712,19 +781,30 @@ $("sortDirection").addEventListener("change", () => {
   renderAttendance();
 });
 
-$("rosterTab").addEventListener("click", () => {
+function showRosterView() {
   $("rosterTab").classList.add("active");
   $("attendanceTab").classList.remove("active");
+  if ($("attendanceRosterBtn")) $("attendanceRosterBtn").classList.add("active");
+  if ($("attendanceSelfBtn")) $("attendanceSelfBtn").classList.remove("active");
   $("rosterView").classList.remove("hidden");
   $("attendanceView").classList.add("hidden");
-});
-$("attendanceTab").addEventListener("click", () => {
+  renderRoster();
+}
+
+function showAttendanceView() {
   $("attendanceTab").classList.add("active");
   $("rosterTab").classList.remove("active");
+  if ($("attendanceSelfBtn")) $("attendanceSelfBtn").classList.add("active");
+  if ($("attendanceRosterBtn")) $("attendanceRosterBtn").classList.remove("active");
   $("rosterView").classList.add("hidden");
   $("attendanceView").classList.remove("hidden");
   renderAttendance();
-});
+}
+
+$("rosterTab").addEventListener("click", showRosterView);
+$("attendanceTab").addEventListener("click", showAttendanceView);
+$("attendanceRosterBtn").addEventListener("click", showRosterView);
+$("attendanceSelfBtn").addEventListener("click", showAttendanceView);
 
 $("signInBtn").addEventListener("click", async () => {
   $("authError").classList.add("hidden");
@@ -786,8 +866,6 @@ if (!configIsReady()) {
     $("loginScreen").classList.add("hidden");
     $("app").classList.remove("hidden");
     $("userLabel").textContent = user.email;
-    $("rosterNotice").textContent =
-      "Roster validated against the CRS enrollment screenshot: 20 students. 18 supplied Google Form profiles/photos; 2 are retained from CRS because they did not submit the Form.";
     subscribeClassState();
     renderRoster();
     renderAttendance();
