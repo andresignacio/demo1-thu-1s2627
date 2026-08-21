@@ -44,84 +44,137 @@ button.danger{background:#fff0f0;color:var(--danger)}
 .badge{display:inline-block;font-size:10px;font-weight:700;border-radius:999px;padding:3px 7px;background:#f1f3f5;color:#586174;margin-top:8px}
 .badge.warn{background:#fff3cf;color:#875b00}
 
-/* Compact whole-class view: portrait photos, balanced spacing, and no footer overlap. */
+/* Whole-class overview: portrait photo cards plus a dedicated control rail. */
+.roster-layout{
+  display:grid;
+  grid-template-columns:180px minmax(0,1fr);
+  gap:16px;
+  align-items:stretch;
+}
+.roster-controls{
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#f8f9fb;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  align-self:stretch;
+}
+.roster-controls .control-title{
+  font-size:12px;
+  font-weight:800;
+  color:#475467;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.roster-controls label{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  font-size:11px;
+  color:#667085;
+}
+.roster-controls select{
+  width:100%;
+  padding:8px 9px;
+}
+.roster-controls .view-note{
+  margin-top:auto;
+  font-size:10px;
+  line-height:1.35;
+  color:#667085;
+}
+.roster-pane{
+  min-width:0;
+}
 .class-overview{
   display:grid;
   grid-template-columns:repeat(5,minmax(0,1fr));
   grid-template-rows:repeat(4,minmax(0,1fr));
-  gap:10px;
+  gap:9px;
   width:100%;
-  height:calc(100vh - 345px);
-  min-height:560px;
-  max-height:690px;
+  height:calc(100vh - 305px);
+  min-height:565px;
+  max-height:705px;
   overflow:hidden;
 }
 .overview-card{
   border:1px solid var(--line);
-  border-radius:10px;
+  border-radius:9px;
   overflow:hidden;
   background:#fff;
-  display:grid;
-  grid-template-rows:minmax(0,1fr) auto;
+  display:flex;
+  flex-direction:column;
   min-width:0;
   min-height:0;
   box-shadow:0 1px 3px rgba(0,0,0,.04);
 }
 .overview-photo{
+  flex:1 1 auto;
   min-height:0;
   background:#eef1f5;
   display:flex;
   align-items:center;
   justify-content:center;
   overflow:hidden;
-  padding:4px;
+  padding:3px;
 }
 .overview-photo img{
-  width:auto;
+  display:block;
+  width:100%;
   height:100%;
-  max-width:100%;
-  max-height:100%;
-  aspect-ratio:4 / 5;
   object-fit:cover;
   object-position:center;
-  display:block;
-  border-radius:5px;
+  border-radius:4px;
+}
+.overview-fallback{
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  border-radius:0!important;
+  padding:12%!important;
 }
 .overview-info{
+  flex:0 0 31px;
   min-width:0;
-  padding:6px 8px 7px;
+  padding:5px 7px;
   background:#fff;
   border-top:1px solid #edf0f3;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
 }
 .overview-name{
-  font-size:14px;
+  font-size:13px;
   font-weight:800;
-  line-height:1.15;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.overview-program{
-  font-size:9px;
-  color:var(--muted);
-  margin-top:3px;
   line-height:1.1;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
 }
-.overview-fallback{
-  font-size:30px!important;
-  width:100%!important;
-  height:100%!important;
-  aspect-ratio:auto!important;
-  object-fit:contain!important;
-  border-radius:0!important;
+.overview-program{
+  display:none;
 }
-.roster-overview + .footer-note{display:none}
+.roster-overview + .footer-note{
+  display:none;
+}
 
-/* Smaller screens: preserve portrait cells and switch to a scrollable compact grid. */
-@media (max-width: 1100px){
+@media (max-width: 1050px){
+  .roster-layout{grid-template-columns:150px minmax(0,1fr);gap:12px}
+  .class-overview{gap:7px;height:calc(100vh - 285px);min-height:520px}
+  .overview-info{flex-basis:29px;padding:4px 6px}
+  .overview-name{font-size:12px}
+}
+@media (max-width: 800px){
+  .roster-layout{display:block}
+  .roster-controls{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    align-items:end;
+    margin-bottom:10px;
+  }
+  .roster-controls .view-note{display:none}
   .class-overview{
     grid-template-columns:repeat(4,minmax(0,1fr));
     grid-template-rows:repeat(5,minmax(0,1fr));
@@ -131,14 +184,13 @@ button.danger{background:#fff0f0;color:var(--danger)}
     overflow:visible;
   }
 }
-@media (max-width: 700px){
+@media (max-width: 600px){
+  .roster-controls{grid-template-columns:1fr 1fr}
   .class-overview{
     grid-template-columns:repeat(3,minmax(0,1fr));
     grid-template-rows:none;
     grid-auto-rows:170px;
   }
-  .overview-name{font-size:12px}
-  .overview-program{font-size:8px}
 }
 .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
 table{border-collapse:collapse;width:max-content;min-width:100%}
@@ -200,15 +252,17 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
   </div>
 
   <section id="rosterView" class="panel">
-    <div class="toolbar">
-      <strong>Faces &amp; Names — 20 enrolled students</strong>
-      <div class="controls">
+    <div class="roster-layout">
+      <aside class="roster-controls">
+        <div class="control-title">Class View</div>
+
         <label>View
           <select id="rosterViewMode">
             <option value="overview" selected>Class Overview</option>
             <option value="cards">Photo Roster</option>
           </select>
         </label>
+
         <label>Sort by
           <select id="sortField">
             <option value="lastName">Last Name</option>
@@ -218,16 +272,25 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
             <option value="program">Degree Program</option>
           </select>
         </label>
+
         <label>Order
           <select id="sortDirection">
             <option value="asc">Ascending</option>
             <option value="desc">Descending</option>
           </select>
         </label>
+
+        <div class="view-note">
+          <strong>Class Overview</strong><br>
+          Portrait photos are enlarged to use the available pane. Names show nickname + last name.
+        </div>
+      </aside>
+
+      <div class="roster-pane">
+        <div id="rosterCards" class="roster"></div>
+        <div id="rosterOverview" class="class-overview roster-overview"></div>
       </div>
     </div>
-    <div id="rosterCards" class="roster"></div>
-    <div id="rosterOverview" class="class-overview roster-overview"></div>
     <div class="footer-note">Class Overview is optimized for whole-class recognition; Photo Roster provides the larger individual-photo view. Two CRS-enrolled students did not submit the Google Form and therefore use fallback avatars until photographs are supplied.</div>
   </section>
 
