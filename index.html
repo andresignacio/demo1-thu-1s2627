@@ -278,6 +278,47 @@ thead th:first-child{z-index:6;background:#f7f8fa}
 .attendance-date-header .weekday{font-size:11px;font-weight:750}
 .attendance-date-header .date{font-size:12px;margin-top:2px}
 input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
+.student-modal-backdrop{
+  position:fixed;inset:0;z-index:1000;background:rgba(15,23,42,.58);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.student-modal-backdrop.hidden{display:none!important}
+.student-modal{
+  width:min(760px,94vw);max-height:90vh;overflow:auto;background:#fff;
+  border-radius:16px;box-shadow:0 22px 70px rgba(0,0,0,.28);border:1px solid rgba(0,0,0,.08);
+}
+.student-modal-header{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 18px;border-bottom:1px solid var(--line);
+}
+.student-modal-header h2{margin:0;font-size:18px}
+.student-modal-close{
+  border:0;background:#f2f4f7;color:#344054;width:34px;height:34px;border-radius:8px;
+  font-size:20px;cursor:pointer;
+}
+.student-modal-body{
+  display:grid;grid-template-columns:minmax(180px,280px) minmax(0,1fr);
+  gap:22px;padding:20px;
+}
+.student-modal-photo{
+  aspect-ratio:4 / 5;border-radius:10px;overflow:hidden;background:#eef1f5;
+  display:flex;align-items:center;justify-content:center;
+}
+.student-modal-photo img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.student-modal-photo img.fallback{object-fit:contain;padding:14%}
+.student-modal-details{display:flex;flex-direction:column;justify-content:center;gap:12px}
+.student-detail-label{
+  font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#667085;
+}
+.student-detail-value{font-size:17px;font-weight:700;color:#182230;margin-top:2px}
+.student-modal-note{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.4}
+.student-clickable{cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
+.student-clickable:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.10)}
+.student-clickable:focus-visible{outline:3px solid rgba(123,17,19,.35);outline-offset:2px}
+@media (max-width:700px){
+  .student-modal-body{grid-template-columns:1fr}
+  .student-modal-photo{width:min(280px,100%);margin:0 auto}
+}
 .login{max-width:520px;margin:80px auto;text-align:center}
 .login h1{margin-top:0} .login p{color:var(--muted);line-height:1.45}
 #authError{margin-top:12px}
@@ -293,6 +334,41 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
   <p>Sign in with your UP Google account to access the class manager.</p>
   <button id="signInBtn" class="action primary">Sign in with Google</button>
   <div id="authError" class="error hidden"></div>
+</div>
+
+<div id="studentModal" class="student-modal-backdrop hidden" role="presentation">
+  <div class="student-modal" role="dialog" aria-modal="true" aria-labelledby="studentModalTitle">
+    <div class="student-modal-header">
+      <h2 id="studentModalTitle">Student Details</h2>
+      <button id="studentModalClose" class="student-modal-close" type="button" aria-label="Close student details">×</button>
+    </div>
+    <div class="student-modal-body">
+      <div class="student-modal-photo">
+        <img id="studentModalPhoto" alt="">
+      </div>
+      <div class="student-modal-details">
+        <div>
+          <div class="student-detail-label">Full Name</div>
+          <div id="studentModalFullName" class="student-detail-value"></div>
+        </div>
+        <div>
+          <div class="student-detail-label">Nickname</div>
+          <div id="studentModalNickname" class="student-detail-value"></div>
+        </div>
+        <div>
+          <div class="student-detail-label">Degree Program</div>
+          <div id="studentModalProgram" class="student-detail-value"></div>
+        </div>
+        <div>
+          <div class="student-detail-label">Student Number</div>
+          <div id="studentModalStudentNumber" class="student-detail-value"></div>
+        </div>
+        <div class="student-modal-note">
+          Student details are based on the DEMO 1 class roster and Google Form profile information where available.
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="app" class="hidden">
@@ -501,6 +577,63 @@ function photoUrl(s, size = 800) {
   return `https://drive.google.com/thumbnail?id=${encodeURIComponent(s.photoFileId)}&sz=w${size}`;
 }
 
+let lastFocusedStudentElement = null;
+
+function openStudentModal(s, triggerElement = null) {
+  lastFocusedStudentElement = triggerElement || document.activeElement;
+  const modal = $("studentModal");
+  const img = $("studentModalPhoto");
+
+  $("studentModalTitle").textContent =
+    s.nickname ? `${s.nickname} ${s.lastName}` : `${s.firstName} ${s.lastName}`;
+  $("studentModalFullName").textContent = fullName(s);
+  $("studentModalNickname").textContent = s.nickname || "—";
+  $("studentModalProgram").textContent = s.program || "—";
+  $("studentModalStudentNumber").textContent = s.studentNumber || "—";
+
+  img.classList.remove("fallback");
+  img.alt = fullName(s);
+
+  if (s.photoFileId) {
+    img.src = photoUrl(s, 800);
+    img.onerror = () => {
+      img.onerror = null;
+      img.src = avatarUrl(s);
+      img.classList.add("fallback");
+    };
+  } else {
+    img.src = avatarUrl(s);
+    img.classList.add("fallback");
+  }
+
+  modal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  $("studentModalClose").focus();
+}
+
+function closeStudentModal() {
+  $("studentModal").classList.add("hidden");
+  document.body.style.overflow = "";
+  if (lastFocusedStudentElement && document.contains(lastFocusedStudentElement)) {
+    lastFocusedStudentElement.focus();
+  }
+  lastFocusedStudentElement = null;
+}
+
+function makeStudentClickable(element, student) {
+  element.classList.add("student-clickable");
+  element.setAttribute("role", "button");
+  element.setAttribute("tabindex", "0");
+  element.setAttribute("aria-label", `View details for ${fullName(student)}`);
+  element.addEventListener("click", () => openStudentModal(student, element));
+  element.addEventListener("keydown", event => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openStudentModal(student, element);
+    }
+  });
+}
+
 function sortedStudents() {
   const field = $("sortField").value;
   const dir = $("sortDirection").value === "asc" ? 1 : -1;
@@ -565,6 +698,7 @@ function renderRoster() {
       `;
 
       card.append(photoDiv, body);
+      makeStudentClickable(card, s);
       cardsRoot.appendChild(card);
     } else {
       const card = document.createElement("article");
@@ -600,6 +734,7 @@ function renderRoster() {
       `;
 
       card.append(photo, info);
+      makeStudentClickable(card, s);
       overviewRoot.appendChild(card);
     }
   }
@@ -834,6 +969,18 @@ $("signInBtn").addEventListener("click", async () => {
 });
 
 $("signOutBtn").addEventListener("click", () => signOut(getAuth()));
+
+$("studentModalClose").addEventListener("click", closeStudentModal);
+
+$("studentModal").addEventListener("click", event => {
+  if (event.target === $("studentModal")) closeStudentModal();
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && !$("studentModal").classList.contains("hidden")) {
+    closeStudentModal();
+  }
+});
 
 function showSetupError() {
   $("loginScreen").querySelector("p:nth-of-type(2)").textContent =
