@@ -350,7 +350,6 @@ function classDoc() {
 function isAuthorizedUser(user) {
   return Boolean(
     user?.email &&
-    user.email_verified &&
     user.email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN)
   );
 }
@@ -458,7 +457,7 @@ $("signInBtn").addEventListener("click", async () => {
     const result = await signInWithPopup(auth, provider);
     if (!isAuthorizedUser(result.user)) {
       await signOut(auth);
-      throw new Error("Only verified @up.edu.ph Google accounts are authorized for this class manager.");
+      throw new Error("Only @up.edu.ph Google accounts are authorized for this class manager.");
     }
   } catch (err) {
     console.error(err);
