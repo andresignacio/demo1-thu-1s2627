@@ -51,6 +51,13 @@ th:first-child,td:first-child{position:sticky;left:0;background:#fff;z-index:4;t
 thead th:first-child{z-index:6;background:#f7f8fa}
 .student-name{font-weight:650} .student-sub{font-size:11px;color:var(--muted);margin-top:2px}
 input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
+.attendance-past{background:#eeeeee!important;color:#777!important}
+.attendance-current{background:#f6b44b!important;color:#000!important}
+.attendance-past input[type=checkbox]{opacity:.75}
+.attendance-current input[type=checkbox]{accent-color:#9a4f00}
+.attendance-date-header{min-width:76px;line-height:1.15}
+.attendance-date-header .weekday{font-size:11px;font-weight:700}
+.attendance-date-header .date{font-size:12px;margin-top:2px}
 .date-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .date-pill{border:1px solid var(--line);border-radius:999px;padding:5px 9px;background:#fafbfc;display:inline-flex;gap:7px;align-items:center;font-size:12px}
 .date-pill button{border:0;background:transparent;color:var(--danger);cursor:pointer;padding:0 2px}
@@ -76,7 +83,7 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
   <div class="header-inner">
     <div class="brand">
       <h1>DEMO 1 Class Manager</h1>
-      <p>Demo 1 THU · Class Code 45202 · Thursday 10:00–11:30 AM · AY 2026–2027</p>
+      <p>Demo 1 THU · Class Code 45202 · Tuesday & Thursday 10:00–11:30 AM · AY 2026–2027</p>
     </div>
     <div class="header-right">
       <span id="userLabel" class="status"></span>
@@ -124,16 +131,10 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
         <strong>Attendance Tracker</strong>
         <div class="status">Attendance is stored in Firestore and keyed by student number.</div>
       </div>
-      <div class="controls">
-        <input id="classDateInput" type="date" aria-label="Class date">
-        <button id="addDateBtn" class="action primary">Add class date</button>
-      </div>
     </div>
-
     <div class="notice info">
-      Add the actual DEMO 1 meeting dates here. Dates are stored in the DEMO 1 Firestore document and will appear for you on every device after signing in with the same account.
+      DEMO 1 meets every Tuesday and Thursday from August 20 through December 3, 2026. Past class dates are shown in gray; the current date is highlighted in orange. Attendance remains editable for all dates.
     </div>
-    <div id="datePills" class="date-row" style="margin-bottom:14px;"></div>
     <div class="table-wrap">
       <table id="attendanceTable"></table>
     </div>
@@ -161,7 +162,6 @@ const ALLOWED_EMAIL_DOMAIN = "@up.edu.ph";
 
 // Paste the Web App configuration from Firebase Project Settings.
 // This is the browser Web App config, NOT a service-account key.
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyCrpIsKmgCKdpt9P8tDF71hRoLJULnATjA",
   authDomain: "fir-1-class-manager.firebaseapp.com",
@@ -170,6 +170,40 @@ const firebaseConfig = {
   messagingSenderId: "353001889820",
   appId: "1:353001889820:web:3c95656035403fe8cebfd9"
 };
+
+const CLASS_DATES = [
+  "2026-08-20",
+  "2026-08-25",
+  "2026-08-27",
+  "2026-09-01",
+  "2026-09-03",
+  "2026-09-08",
+  "2026-09-10",
+  "2026-09-15",
+  "2026-09-17",
+  "2026-09-22",
+  "2026-09-24",
+  "2026-09-29",
+  "2026-10-01",
+  "2026-10-06",
+  "2026-10-08",
+  "2026-10-13",
+  "2026-10-15",
+  "2026-10-20",
+  "2026-10-22",
+  "2026-10-27",
+  "2026-10-29",
+  "2026-11-03",
+  "2026-11-05",
+  "2026-11-10",
+  "2026-11-12",
+  "2026-11-17",
+  "2026-11-19",
+  "2026-11-24",
+  "2026-11-26",
+  "2026-12-01",
+  "2026-12-03"
+];
 
 const students = [{"studentNumber":"202314601","lastName":"Aga","firstName":"Rebecca","middleName":"Alvarez","nickname":"Rebie","program":"Non-Major (Previously BS Materials Engineering)","photoFileId":"1GT0t6gsKdu6dUqKaRayskmc50B3jQpni","source":"google_form"},{"studentNumber":"202303665","lastName":"Albia","firstName":"Louise Arwin","middleName":"Alimodian","nickname":"Arwin","program":"Non-Major (BS Civil Engg)","photoFileId":"1UNenTTHSM7hZ8r6T9LitVWF6h5IADpiv","source":"google_form"},{"studentNumber":"202501589","lastName":"Cado","firstName":"Gerald Andrei","middleName":"Loteria","nickname":"","program":"BA (Political Science)","photoFileId":"","source":"crs_only"},{"studentNumber":"202205999","lastName":"Camarillo","firstName":"Luis Alfonso","middleName":"L.","nickname":"Cama","program":"BS Physics","photoFileId":"1ti7wM5DibcihAqRx8bbbyhRC98DiMFwc","source":"google_form"},{"studentNumber":"202306025","lastName":"Casabar","firstName":"Brian Carl","middleName":"Carasag","nickname":"","program":"Non-Major (Engg)","photoFileId":"","source":"crs_only"},{"studentNumber":"202409536","lastName":"Catindig","firstName":"Jasmine Anne","middleName":"Fernando","nickname":"Jaz","program":"BA Journalism","photoFileId":"1_He03plvkZo-nkKgxZW7T3X1Tl_c-Elo","source":"google_form"},{"studentNumber":"202508872","lastName":"Cleofas","firstName":"Rian Allison","middleName":"","nickname":"Rian","program":"BS Social Work","photoFileId":"1YI577lRFBhAPQ_6xC5IGQnBWOYypBAFa","source":"google_form"},{"studentNumber":"202311531","lastName":"Dimapasoc","firstName":"Reign Yvonne","middleName":"Gaa","nickname":"Rei","program":"Non-Major (BS Geodetic Engineering)","photoFileId":"10IjxvgBhigAB9EK_KvEXCbd9cgH3IN_a","source":"google_form"},{"studentNumber":"202510867","lastName":"Estavillo","firstName":"Nathaniel James","middleName":"Domingo","nickname":"Nat","program":"BA Creative Writing","photoFileId":"1clUIR9R0QnB9gUm-WaOy6O91Ra9MJCh9","source":"google_form"},{"studentNumber":"202506545","lastName":"Fontanilla","firstName":"Niko Rhoy","middleName":"Ramos","nickname":"Niko","program":"BA Political Science","photoFileId":"1VJNBIhoR2Rg_VdkV22ERKl1rCNJjK6OK","source":"google_form"},{"studentNumber":"202501263","lastName":"Galla","firstName":"Andre Michael Gabrielle","middleName":"Roque","nickname":"Drey","program":"BA Political Science","photoFileId":"1iCp9giuQtHBOAJ1GSzQMfH9zo_69qU2y","source":"google_form"},{"studentNumber":"202509826","lastName":"Gianan","firstName":"Samantha Nicole","middleName":"Sural","nickname":"Sam","program":"BS Mechanical Engineering","photoFileId":"1vqbK7ptplkkFWLJcYvjmuIkvSqyEFmr5","source":"google_form"},{"studentNumber":"202401426","lastName":"Hautea","firstName":"Thomas Nathan","middleName":"Tan","nickname":"Nate","program":"BS Geography","photoFileId":"1xKIejLZ2mC55pm4Or3ElcMtQXrJF3Jbc","source":"google_form"},{"studentNumber":"202511370","lastName":"Justiniani","firstName":"Mary Rolyn","middleName":"Castor","nickname":"Rolyn","program":"BS Architecture","photoFileId":"1l8dxAPHozrjKkiPMIH4JyvPJiokzebvg","source":"google_form"},{"studentNumber":"202413924","lastName":"Ojano","firstName":"Gabriella Yzabel","middleName":"Juaton","nickname":"Gab","program":"BA Linguistics","photoFileId":"1b1j-o5AGUFiRP8ch9QDcfyXuxv03s8lR","source":"google_form"},{"studentNumber":"202505366","lastName":"Pineda","firstName":"Mike Chester","middleName":"Alfaro","nickname":"Chester","program":"BA Political Science","photoFileId":"1Bzwe_iDQ6hX57C4Zu-dtIwjdQPBs_3tx","source":"google_form"},{"studentNumber":"202414458","lastName":"Raoet","firstName":"Lorvy Loren","middleName":"Gaviola","nickname":"Ren","program":"BA Linguistics","photoFileId":"1gcf8QHuy146crPHEcrrNAmsl_ct-7p9N","source":"google_form"},{"studentNumber":"202503330","lastName":"Sta. Catalina","firstName":"Dennis Gabriel","middleName":"Valenzuela","nickname":"Dennis","program":"BS Statistics","photoFileId":"1GqEHrupqrBXPMgVmuAJ9RHON0YvrrrU1","source":"google_form"},{"studentNumber":"202400707","lastName":"Umal","firstName":"Aeia","middleName":"Gonzalves","nickname":"Aya","program":"BA Linguistics","photoFileId":"1397Uki33kBArKr6n12g49P-Onps-_FcM","source":"google_form"},{"studentNumber":"202500527","lastName":"Yumul","firstName":"John Melchiezidek","middleName":"Viray","nickname":"JM","program":"BA Political Science","photoFileId":"1nHV_ZqAbFgOxl58dFDS5rKpcexUnWy1I","source":"google_form"}];
 
@@ -180,7 +214,6 @@ let currentUser = null;
 let db = null;
 let unsubscribeClass = null;
 let attendance = {};
-let classDates = [];
 
 const $ = id => document.getElementById(id);
 
@@ -282,24 +315,18 @@ function shortDate(dateString) {
   }).format(d);
 }
 
-function renderDatePills() {
-  const root = $("datePills");
-  root.innerHTML = "";
-  if (!classDates.length) {
-    root.innerHTML = '<span class="status">No class dates have been added yet.</span>';
-    return;
-  }
-  for (const date of classDates) {
-    const pill = document.createElement("span");
-    pill.className = "date-pill";
-    pill.innerHTML = `${escapeHtml(formatDate(date))} <button title="Remove date" aria-label="Remove ${escapeHtml(formatDate(date))}">×</button>`;
-    pill.querySelector("button").addEventListener("click", () => removeClassDate(date));
-    root.appendChild(pill);
-  }
+function getDateStatus(dateString) {
+  const today = new Date();
+  const todayString =
+    today.getFullYear() + "-" +
+    String(today.getMonth() + 1).padStart(2, "0") + "-" +
+    String(today.getDate()).padStart(2, "0");
+  if (dateString < todayString) return "past";
+  if (dateString === todayString) return "current";
+  return "future";
 }
 
 function renderAttendance() {
-  renderDatePills();
   const table = $("attendanceTable");
   table.innerHTML = "";
 
@@ -309,12 +336,20 @@ function renderAttendance() {
   nameTh.textContent = "Student Name";
   headRow.appendChild(nameTh);
 
-  for (const date of classDates) {
+  for (const date of CLASS_DATES) {
     const th = document.createElement("th");
-    th.textContent = shortDate(date);
+    const status = getDateStatus(date);
+    if (status === "past") th.classList.add("attendance-past");
+    if (status === "current") th.classList.add("attendance-current");
+
+    const d = new Date(date + "T00:00:00");
+    const weekday = new Intl.DateTimeFormat("en-PH", { weekday: "short" }).format(d);
+    const formattedDate = new Intl.DateTimeFormat("en-PH", { month: "short", day: "numeric" }).format(d);
+    th.innerHTML = `<div class="attendance-date-header"><div class="weekday">${escapeHtml(weekday)}</div><div class="date">${escapeHtml(formattedDate)}</div></div>`;
     th.title = formatDate(date);
     headRow.appendChild(th);
   }
+
   thead.appendChild(headRow);
   table.appendChild(thead);
 
@@ -326,15 +361,17 @@ function renderAttendance() {
                         <div class="student-sub">${escapeHtml(s.studentNumber)}</div>`;
     tr.appendChild(nameTd);
 
-    for (const date of classDates) {
+    for (const date of CLASS_DATES) {
       const td = document.createElement("td");
+      const status = getDateStatus(date);
+      if (status === "past") td.classList.add("attendance-past");
+      if (status === "current") td.classList.add("attendance-current");
+
       const cb = document.createElement("input");
       cb.type = "checkbox";
       cb.checked = Boolean(attendance?.[s.studentNumber]?.[date]);
       cb.setAttribute("aria-label", `Attendance for ${fullName(s)} on ${formatDate(date)}`);
-      cb.addEventListener("change", () =>
-        setAttendance(s.studentNumber, date, cb.checked)
-      );
+      cb.addEventListener("change", () => setAttendance(s.studentNumber, date, cb.checked));
       td.appendChild(cb);
       tr.appendChild(td);
     }
@@ -363,7 +400,6 @@ async function saveClassState(extra={}) {
       classCode: CLASS_CODE,
       academicYear: ACADEMIC_YEAR,
       attendance,
-      classDates,
       updatedAt: serverTimestamp(),
       updatedBy: currentUser.uid,
       ...extra
@@ -383,27 +419,6 @@ async function setAttendance(studentNumber, date, checked) {
   await saveClassState();
 }
 
-async function addClassDate() {
-  const date = $("classDateInput").value;
-  if (!date) return;
-  if (!classDates.includes(date)) {
-    classDates = [...classDates, date].sort();
-    await saveClassState();
-    renderAttendance();
-  }
-  $("classDateInput").value = "";
-}
-
-async function removeClassDate(date) {
-  if (!confirm(`Remove ${formatDate(date)} from the attendance tracker? Existing attendance values for that date will also be removed.`)) return;
-  classDates = classDates.filter(d => d !== date);
-  for (const studentNumber of Object.keys(attendance)) {
-    if (attendance[studentNumber]) delete attendance[studentNumber][date];
-  }
-  await saveClassState();
-  renderAttendance();
-}
-
 function subscribeClassState() {
   if (unsubscribeClass) unsubscribeClass();
   setSync("Connecting...");
@@ -411,10 +426,8 @@ function subscribeClassState() {
     if (snapshot.exists()) {
       const data = snapshot.data();
       attendance = data.attendance || {};
-      classDates = Array.isArray(data.classDates) ? data.classDates.slice().sort() : [];
     } else {
       attendance = {};
-      classDates = [];
     }
     setSync("Cloud synced", "ok");
     renderAttendance();
@@ -446,7 +459,6 @@ $("attendanceTab").addEventListener("click", () => {
   $("attendanceView").classList.remove("hidden");
   renderAttendance();
 });
-$("addDateBtn").addEventListener("click", addClassDate);
 
 $("signInBtn").addEventListener("click", async () => {
   $("authError").classList.add("hidden");
@@ -500,7 +512,7 @@ if (!configIsReady()) {
     if (!isAuthorizedUser(user)) {
       signOut(auth);
       $("authError").textContent =
-        "This account is not authorized. Please sign in with your verified @up.edu.ph account.";
+        "This account is not authorized. Please sign in with your @up.edu.ph account.";
       $("authError").classList.remove("hidden");
       return;
     }
