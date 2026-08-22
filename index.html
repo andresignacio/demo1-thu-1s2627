@@ -280,25 +280,20 @@ thead th:first-child{z-index:6;background:#f7f8fa}
 input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
 .hover-student-preview{
   position:fixed;
-  inset:0;
-  z-index:95;
+  z-index:950;
   display:none;
-  align-items:center;
-  justify-content:center;
-  padding:24px;
-  background:rgba(15,23,42,.72);
-  backdrop-filter:blur(2px);
-  pointer-events:none;
-}
-.hover-student-preview.show{display:flex}
-.hover-student-preview .hover-card{
-  width:min(720px,92vw);
+  width:min(720px,calc(100vw - 24px));
   max-height:88vh;
   overflow:auto;
   background:#fff;
   border:1px solid rgba(123,17,19,.18);
   border-radius:16px;
   box-shadow:0 28px 80px rgba(0,0,0,.34);
+  pointer-events:auto;
+}
+.hover-student-preview.show{display:block}
+.hover-student-preview .hover-card{
+  width:100%;
 }
 .hover-student-preview .hover-header{
   padding:14px 18px;
@@ -720,6 +715,9 @@ function photoUrl(s, size = 800) {
 
 let hoverPreviewTimer = null;
 let hoverPreviewHideTimer = null;
+let hoverSourceElement = null;
+let hoverCursorX = 0;
+let hoverCursorY = 0;
 
 function isHoverPreviewDevice(){
   return window.matchMedia("(pointer:fine)").matches;
@@ -729,7 +727,41 @@ function findStudentByNumber(studentNumber){
   return students.find(s => s.studentNumber === studentNumber);
 }
 
-function showHoverStudentPreview(studentNumber){
+function positionHoverStudentPreview(x, y){
+  const preview = $("hoverStudentPreview");
+  if (!preview || !preview.classList.contains("show")) return;
+
+  const margin = 12;
+  const gap = 18;
+  const rect = preview.getBoundingClientRect();
+
+  // Prefer centering the preview on the cursor.
+  let left = x - rect.width / 2;
+  let top = y - rect.height / 2;
+
+  // Keep it entirely inside the viewport.
+  left = Math.max(margin, Math.min(left, window.innerWidth - rect.width - margin));
+  top = Math.max(margin, Math.min(top, window.innerHeight - rect.height - margin));
+
+  // If centering would put the pointer inside the panel, shift it to one side
+  // so the pointer can move cleanly from the source photo into the panel.
+  const pointerInside =
+    x >= left && x <= left + rect.width &&
+    y >= top && y <= top + rect.height;
+
+  if (pointerInside) {
+    if (x + gap + rect.width <= window.innerWidth - margin) {
+      left = x + gap;
+    } else if (x - rect.width - gap >= margin) {
+      left = x - rect.width - gap;
+    }
+  }
+
+  preview.style.left = `${Math.round(left)}px`;
+  preview.style.top = `${Math.round(top)}px`;
+}
+
+function showHoverStudentPreview(studentNumber, x, y){
   if (!isHoverPreviewDevice()) return;
 
   const s = findStudentByNumber(studentNumber);
@@ -760,33 +792,62 @@ function showHoverStudentPreview(studentNumber){
   photo.src = s.photoFileId ? photoUrl(s, 900) : avatarUrl(s);
 
   preview.classList.add("show");
-  preview.setAttribute("aria-hidden","false");
+  preview.setAttribute("aria-hidden", "false");
+
+  // Position only after the popup has been rendered so dimensions are known.
+  requestAnimationFrame(() => positionHoverStudentPreview(x, y));
 }
 
-function scheduleHoverStudentPreview(studentNumber){
+function scheduleHoverStudentPreview(studentNumber, x, y, sourceElement){
   if (!isHoverPreviewDevice()) return;
 
   clearTimeout(hoverPreviewTimer);
   clearTimeout(hoverPreviewHideTimer);
 
-  // Same 1-second hover delay as the CWTS implementation.
+  hoverSourceElement = sourceElement;
+  hoverCursorX = x;
+  hoverCursorY = y;
+
+  // Preserve the working CWTS 1-second reveal delay.
   hoverPreviewTimer = setTimeout(
-    () => showHoverStudentPreview(studentNumber),
+    () => showHoverStudentPreview(studentNumber, hoverCursorX, hoverCursorY),
     1000
   );
 }
 
-function hideHoverStudentPreview(){
+function hideHoverStudentPreview(immediate = false){
   clearTimeout(hoverPreviewTimer);
   clearTimeout(hoverPreviewHideTimer);
 
-  hoverPreviewHideTimer = setTimeout(() => {
+  const hide = () => {
     const preview = $("hoverStudentPreview");
-    if (preview){
-      preview.classList.remove("show");
-      preview.setAttribute("aria-hidden","true");
-    }
-  }, 80);
+    if (!preview) return;
+
+    preview.classList.remove("show");
+    preview.setAttribute("aria-hidden", "true");
+    hoverSourceElement = null;
+  };
+
+  if (immediate) {
+    hide();
+  } else {
+    hoverPreviewHideTimer = setTimeout(hide, 100);
+  }
+}
+
+function pointerInHoverZone(event){
+  const preview = $("hoverStudentPreview");
+  const inPreview =
+    preview &&
+    preview.classList.contains("show") &&
+    event.target.closest &&
+    event.target.closest("#hoverStudentPreview");
+
+  const inSource =
+    hoverSourceElement &&
+    hoverSourceElement.contains(event.target);
+
+  return Boolean(inPreview || inSource);
 }
 
 function bindPhotoHoverTargets(){
@@ -801,17 +862,71 @@ function bindPhotoHoverTargets(){
     const card = photoArea.closest(".student-card-clickable");
     if (!card) return;
 
-    photoArea.addEventListener("mouseenter", () => {
-      scheduleHoverStudentPreview(card.dataset.studentNumber);
+    const studentNumber = card.dataset.studentNumber;
+
+    photoArea.addEventListener("mouseenter", event => {
+      scheduleHoverStudentPreview(
+        studentNumber,
+        event.clientX,
+        event.clientY,
+        photoArea
+      );
     });
 
-    photoArea.addEventListener("mouseleave", () => {
-      hideHoverStudentPreview();
+    photoArea.addEventListener("mousemove", event => {
+      hoverCursorX = event.clientX;
+      hoverCursorY = event.clientY;
+
+      if (!$("hoverStudentPreview").classList.contains("show")) {
+        scheduleHoverStudentPreview(
+          studentNumber,
+          event.clientX,
+          event.clientY,
+          photoArea
+        );
+      }
+    });
+
+    photoArea.addEventListener("mouseleave", event => {
+      if (!pointerInHoverZone(event)) {
+        hideHoverStudentPreview();
+      }
     });
   });
 }
 
+
+
 let lastFocusedStudentElement = null;
+
+$("hoverStudentPreview").addEventListener("mouseenter", event => {
+  clearTimeout(hoverPreviewHideTimer);
+  hoverCursorX = event.clientX;
+  hoverCursorY = event.clientY;
+});
+
+$("hoverStudentPreview").addEventListener("mousemove", event => {
+  hoverCursorX = event.clientX;
+  hoverCursorY = event.clientY;
+});
+
+$("hoverStudentPreview").addEventListener("mouseleave", () => {
+  hideHoverStudentPreview();
+});
+
+document.addEventListener("pointermove", event => {
+  if (!isHoverPreviewDevice()) return;
+
+  hoverCursorX = event.clientX;
+  hoverCursorY = event.clientY;
+
+  if (!pointerInHoverZone(event)) {
+    hideHoverStudentPreview();
+  }
+});
+
+window.addEventListener("resize", () => hideHoverStudentPreview(true));
+window.addEventListener("scroll", () => hideHoverStudentPreview(true));
 
 function openStudentModal(s, triggerElement = null) {
   lastFocusedStudentElement = triggerElement || document.activeElement;
@@ -862,13 +977,14 @@ function makeStudentClickable(element, student) {
   element.setAttribute("tabindex", "0");
   element.setAttribute("aria-label", `View details for ${fullName(student)}`);
   element.addEventListener("click", () => {
-    hideHoverStudentPreview();
+    hideHoverStudentPreview(true);
     openStudentModal(student, element);
   });
   element.addEventListener("keydown", event => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       hideHoverStudentPreview();
+      hideHoverStudentPreview(true);
       openStudentModal(student, element);
     }
   });
