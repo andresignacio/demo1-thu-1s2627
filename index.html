@@ -599,6 +599,20 @@ function configIsReady() {
   );
 }
 
+// Initialize Firebase as soon as the module loads. This avoids a race where
+// the sign-in button becomes clickable before the Auth instance exists.
+let firebaseInitError = null;
+if (configIsReady()) {
+  try {
+    const firebaseApp = initializeApp(firebaseConfig);
+    auth = getAuth(firebaseApp);
+    db = getFirestore(firebaseApp);
+  } catch (err) {
+    console.error("Firebase initialization failed:", err);
+    firebaseInitError = err;
+  }
+}
+
 function setSync(text, state="") {
   const el = $("syncStatus");
   el.textContent = text;
@@ -1107,7 +1121,8 @@ $("attendanceSelfBtn").addEventListener("click", showAttendanceView);
 $("signInBtn").addEventListener("click", async () => {
   $("authError").classList.add("hidden");
   try {
-    if (!auth) throw new Error("Firebase authentication is not initialized yet. Please reload the page.");
+    if (firebaseInitError) throw new Error("Firebase could not be initialized. Please reload the page.");
+    if (!auth) throw new Error("Firebase authentication is unavailable. Please reload the page.");
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({login_hint:"@up.edu.ph"});
     const result = await signInWithPopup(auth, provider);
@@ -1150,25 +1165,27 @@ document.addEventListener("keydown", event => {
   }
 });
 
-function showSetupError() {
+function showSetupError(message) {
   $("loginScreen").querySelector("p:nth-of-type(2)").textContent =
-    "Firebase configuration is not filled in yet. Paste the Web App configuration below before deploying.";
+    "Firebase configuration could not be initialized.";
   $("signInBtn").disabled = true;
   $("signInBtn").style.opacity = ".55";
-  $("authError").textContent =
-    "Open index.html and replace the five firebaseConfig placeholder values with the Web App configuration from Firebase Project Settings.";
+  $("authError").textContent = message;
   $("authError").classList.remove("hidden");
 }
 
 renderRoster();
 
 if (!configIsReady()) {
-  showSetupError();
+  showSetupError(
+    "Firebase configuration is missing. Please paste the Web App configuration from Firebase Project Settings."
+  );
+} else if (firebaseInitError || !auth) {
+  console.error("Firebase Auth is unavailable:", firebaseInitError);
+  showSetupError(
+    "Firebase authentication could not be initialized. Please reload the page. If the problem persists, check the Firebase Web App configuration."
+  );
 } else {
-  const app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  db = getFirestore(app);
-
   onAuthStateChanged(auth, user => {
     currentUser = user;
     if (!user) {
