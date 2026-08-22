@@ -278,6 +278,120 @@ thead th:first-child{z-index:6;background:#f7f8fa}
 .attendance-date-header .weekday{font-size:11px;font-weight:750}
 .attendance-date-header .date{font-size:12px;margin-top:2px}
 input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
+.hover-student-preview{
+  position:fixed;
+  inset:0;
+  z-index:95;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:rgba(15,23,42,.72);
+  backdrop-filter:blur(2px);
+  pointer-events:none;
+}
+.hover-student-preview.show{display:flex}
+.hover-student-preview .hover-card{
+  width:min(720px,92vw);
+  max-height:88vh;
+  overflow:auto;
+  background:#fff;
+  border:1px solid rgba(123,17,19,.18);
+  border-radius:16px;
+  box-shadow:0 28px 80px rgba(0,0,0,.34);
+}
+.hover-student-preview .hover-header{
+  padding:14px 18px;
+  border-bottom:1px solid var(--line);
+}
+.hover-student-preview .hover-kicker{
+  font-size:10px;
+  font-weight:800;
+  color:var(--accent);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.hover-student-preview .hover-title{
+  font-size:20px;
+  font-weight:800;
+  color:#182230;
+  margin-top:3px;
+}
+.hover-student-preview .hover-body{
+  display:grid;
+  grid-template-columns:280px minmax(0,1fr);
+  gap:24px;
+  padding:20px;
+}
+.hover-student-preview .hover-photo{
+  width:100%;
+  aspect-ratio:4/5;
+  min-height:340px;
+  background:#f3f5f7;
+  border:1px solid var(--line);
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+.hover-student-preview .hover-photo img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+.hover-student-preview .hover-info{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-width:0;
+}
+.hover-student-preview .hover-name{
+  font-size:27px;
+  font-weight:800;
+  line-height:1.08;
+  color:#182230;
+}
+.hover-student-preview .hover-nickname{
+  margin-top:5px;
+  font-size:17px;
+  font-weight:700;
+  color:var(--accent);
+}
+.hover-student-preview .hover-meta{
+  margin-top:22px;
+  display:grid;
+  grid-template-columns:120px minmax(0,1fr);
+  gap:12px 14px;
+  font-size:14px;
+  line-height:1.35;
+}
+.hover-student-preview .hover-label{
+  color:#667085;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  font-size:10px;
+}
+.hover-student-preview .hover-value{
+  color:#182230;
+  font-weight:650;
+}
+.student-card-clickable:hover{
+  box-shadow:0 4px 16px rgba(123,17,19,.15);
+  transform:translateY(-1px);
+}
+@media (max-width:900px){
+  .hover-student-preview .hover-body{
+    grid-template-columns:250px minmax(0,1fr);
+  }
+  .hover-student-preview .hover-photo{min-height:300px}
+}
+@media (hover:none),(pointer:coarse){
+  .hover-student-preview{display:none!important}
+}
+
 .student-modal-backdrop{
   position:fixed;inset:0;z-index:1000;background:rgba(15,23,42,.58);
   display:flex;align-items:center;justify-content:center;padding:20px;
@@ -360,11 +474,38 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
           <div id="studentModalProgram" class="student-detail-value"></div>
         </div>
         <div>
+          <div class="student-detail-label">Year</div>
+          <div id="studentModalYear" class="student-detail-value"></div>
+        </div>
+        <div>
           <div class="student-detail-label">Student Number</div>
           <div id="studentModalStudentNumber" class="student-detail-value"></div>
         </div>
         <div class="student-modal-note">
           Student details are based on the DEMO 1 class roster and Google Form profile information where available.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="hoverStudentPreview" class="hover-student-preview" aria-hidden="true">
+  <div class="hover-card">
+    <div class="hover-header">
+      <div class="hover-kicker">Student Profile</div>
+      <div id="hoverStudentTitle" class="hover-title"></div>
+    </div>
+    <div class="hover-body">
+      <div class="hover-photo"><img id="hoverStudentPhoto" src="" alt=""></div>
+      <div class="hover-info">
+        <div id="hoverStudentName" class="hover-name"></div>
+        <div id="hoverStudentNickname" class="hover-nickname"></div>
+        <div class="hover-meta">
+          <div class="hover-label">Full Name</div><div id="hoverStudentFullName" class="hover-value"></div>
+          <div class="hover-label">Nickname</div><div id="hoverStudentNickname2" class="hover-value"></div>
+          <div class="hover-label">Program</div><div id="hoverStudentProgram" class="hover-value"></div>
+          <div class="hover-label">Year</div><div id="hoverStudentYear" class="hover-value"></div>
+          <div class="hover-label">Student No.</div><div id="hoverStudentNumber" class="hover-value"></div>
         </div>
       </div>
     </div>
@@ -423,12 +564,12 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
           </select>
         </label>
 
-        <div id="rosterNotice" class="notice roster-notice">Roster validated against the CRS enrollment roster: 20 students; 18 supplied Google Form profiles/photos; 2 are retained from CRS because they did not submit the Form.</div>
+        <div id="rosterNotice" class="notice roster-notice">Roster consolidated from the final Google Form CSV: 20 unique students; all 20 supplied Google Form profiles/photos.</div>
 
         <div class="view-note">
           <strong>Class Overview</strong><br>
           Portrait-oriented photos use the available vertical space. Names show nickname + last name.
-          Two CRS-enrolled students did not submit the Google Form and use fallback avatars until photographs are supplied.
+          All 20 students supplied Google Form profiles/photos; duplicate submissions were consolidated using the latest response.
         </div>
       </aside>
 
@@ -529,7 +670,7 @@ const firebaseConfig = {
   appId: "1:353001889820:web:3c95656035403fe8cebfd9"
 };
 
-const students = [{"studentNumber":"202314601","lastName":"Aga","firstName":"Rebecca","middleName":"Alvarez","nickname":"Rebie","program":"Non-Major (Previously BS Materials Engineering)","photoFileId":"1GT0t6gsKdu6dUqKaRayskmc50B3jQpni","source":"google_form"},{"studentNumber":"202303665","lastName":"Albia","firstName":"Louise Arwin","middleName":"Alimodian","nickname":"Arwin","program":"Non-Major (BS Civil Engg)","photoFileId":"1UNenTTHSM7hZ8r6T9LitVWF6h5IADpiv","source":"google_form"},{"studentNumber":"202501589","lastName":"Cado","firstName":"Gerald Andrei","middleName":"Loteria","nickname":"","program":"BA (Political Science)","photoFileId":"","source":"crs_only"},{"studentNumber":"202205999","lastName":"Camarillo","firstName":"Luis Alfonso","middleName":"L.","nickname":"Cama","program":"BS Physics","photoFileId":"1ti7wM5DibcihAqRx8bbbyhRC98DiMFwc","source":"google_form"},{"studentNumber":"202306025","lastName":"Casabar","firstName":"Brian Carl","middleName":"Carasag","nickname":"","program":"Non-Major (Engg)","photoFileId":"","source":"crs_only"},{"studentNumber":"202409536","lastName":"Catindig","firstName":"Jasmine Anne","middleName":"Fernando","nickname":"Jaz","program":"BA Journalism","photoFileId":"1_He03plvkZo-nkKgxZW7T3X1Tl_c-Elo","source":"google_form"},{"studentNumber":"202508872","lastName":"Cleofas","firstName":"Rian Allison","middleName":"","nickname":"Rian","program":"BS Social Work","photoFileId":"1YI577lRFBhAPQ_6xC5IGQnBWOYypBAFa","source":"google_form"},{"studentNumber":"202311531","lastName":"Dimapasoc","firstName":"Reign Yvonne","middleName":"Gaa","nickname":"Rei","program":"Non-Major (BS Geodetic Engineering)","photoFileId":"10IjxvgBhigAB9EK_KvEXCbd9cgH3IN_a","source":"google_form"},{"studentNumber":"202510867","lastName":"Estavillo","firstName":"Nathaniel James","middleName":"Domingo","nickname":"Nat","program":"BA Creative Writing","photoFileId":"1clUIR9R0QnB9gUm-WaOy6O91Ra9MJCh9","source":"google_form"},{"studentNumber":"202506545","lastName":"Fontanilla","firstName":"Niko Rhoy","middleName":"Ramos","nickname":"Niko","program":"BA Political Science","photoFileId":"1VJNBIhoR2Rg_VdkV22ERKl1rCNJjK6OK","source":"google_form"},{"studentNumber":"202501263","lastName":"Galla","firstName":"Andre Michael Gabrielle","middleName":"Roque","nickname":"Drey","program":"BA Political Science","photoFileId":"1iCp9giuQtHBOAJ1GSzQMfH9zo_69qU2y","source":"google_form"},{"studentNumber":"202509826","lastName":"Gianan","firstName":"Samantha Nicole","middleName":"Sural","nickname":"Sam","program":"BS Mechanical Engineering","photoFileId":"1vqbK7ptplkkFWLJcYvjmuIkvSqyEFmr5","source":"google_form"},{"studentNumber":"202401426","lastName":"Hautea","firstName":"Thomas Nathan","middleName":"Tan","nickname":"Nate","program":"BS Geography","photoFileId":"1xKIejLZ2mC55pm4Or3ElcMtQXrJF3Jbc","source":"google_form"},{"studentNumber":"202511370","lastName":"Justiniani","firstName":"Mary Rolyn","middleName":"Castor","nickname":"Rolyn","program":"BS Architecture","photoFileId":"1l8dxAPHozrjKkiPMIH4JyvPJiokzebvg","source":"google_form"},{"studentNumber":"202413924","lastName":"Ojano","firstName":"Gabriella Yzabel","middleName":"Juaton","nickname":"Gab","program":"BA Linguistics","photoFileId":"1b1j-o5AGUFiRP8ch9QDcfyXuxv03s8lR","source":"google_form"},{"studentNumber":"202505366","lastName":"Pineda","firstName":"Mike Chester","middleName":"Alfaro","nickname":"Chester","program":"BA Political Science","photoFileId":"1Bzwe_iDQ6hX57C4Zu-dtIwjdQPBs_3tx","source":"google_form"},{"studentNumber":"202414458","lastName":"Raoet","firstName":"Lorvy Loren","middleName":"Gaviola","nickname":"Ren","program":"BA Linguistics","photoFileId":"1gcf8QHuy146crPHEcrrNAmsl_ct-7p9N","source":"google_form"},{"studentNumber":"202503330","lastName":"Sta. Catalina","firstName":"Dennis Gabriel","middleName":"Valenzuela","nickname":"Dennis","program":"BS Statistics","photoFileId":"1GqEHrupqrBXPMgVmuAJ9RHON0YvrrrU1","source":"google_form"},{"studentNumber":"202400707","lastName":"Umal","firstName":"Aeia","middleName":"Gonzalves","nickname":"Aya","program":"BA Linguistics","photoFileId":"1397Uki33kBArKr6n12g49P-Onps-_FcM","source":"google_form"},{"studentNumber":"202500527","lastName":"Yumul","firstName":"John Melchiezidek","middleName":"Viray","nickname":"JM","program":"BA Political Science","photoFileId":"1nHV_ZqAbFgOxl58dFDS5rKpcexUnWy1I","source":"google_form"}];
+const students = [{"studentNumber":"202205999","lastName":"Camarillo","firstName":"Luis Alfonso","middleName":"L.","nickname":"Cama","program":"BS Physics","year":"Sophomore","photoFileId":"1ti7wM5DibcihAqRx8bbbyhRC98DiMFwc","source":"google_form"},{"studentNumber":"202303665","lastName":"Albia","firstName":"Louise Arwin","middleName":"Alimodian","nickname":"Arwin","program":"Non-Major (BS Civil Engg)","year":"Junior","photoFileId":"1UNenTTHSM7hZ8r6T9LitVWF6h5IADpiv","source":"google_form"},{"studentNumber":"202306025","lastName":"Casabar","firstName":"Brian Carl","middleName":"Cabasag","nickname":"Brian","program":"Non-Major (Electronics Engineering)","year":"Junior","photoFileId":"1cIw-c_twH3_ElEOkPlN9g_AJqY31Q6LE","source":"google_form"},{"studentNumber":"202311531","lastName":"Dimapasoc","firstName":"Reign Yvonne","middleName":"Gaa","nickname":"Rei","program":"Non-Major (BS Geodetic Engineering)","year":"Senior","photoFileId":"10IjxvgBhigAB9EK_KvEXCbd9cgH3IN_a","source":"google_form"},{"studentNumber":"202314601","lastName":"Aga","firstName":"Rebecca","middleName":"Alvarez","nickname":"Rebie","program":"Non-Major (Previously BS Materials Engineering)","year":"Senior","photoFileId":"1GT0t6gsKdu6dUqKaRayskmc50B3jQpni","source":"google_form"},{"studentNumber":"202400707","lastName":"Umal","firstName":"Aeia","middleName":"Gonzalves","nickname":"Aya","program":"BA Linguistics","year":"Junior","photoFileId":"1397Uki33kBArKr6n12g49P-Onps-_FcM","source":"google_form"},{"studentNumber":"202401426","lastName":"Hautea","firstName":"Thomas Nathan","middleName":"Tan","nickname":"Nate","program":"BS Geography","year":"Freshman","photoFileId":"1xKIejLZ2mC55pm4Or3ElcMtQXrJF3Jbc","source":"google_form"},{"studentNumber":"202409536","lastName":"Catindig","firstName":"Jasmine Anne","middleName":"Fernando","nickname":"Jaz","program":"BA Journalism","year":"Sophomore","photoFileId":"1_He03plvkZo-nkKgxZW7T3X1Tl_c-Elo","source":"google_form"},{"studentNumber":"202413924","lastName":"Ojano","firstName":"Gabriella Yzabel","middleName":"Juaton","nickname":"Gab","program":"BA Linguistics","year":"Junior","photoFileId":"1b1j-o5AGUFiRP8ch9QDcfyXuxv03s8lR","source":"google_form"},{"studentNumber":"202414458","lastName":"Raoet","firstName":"Lorvy Loren","middleName":"Gaviola","nickname":"Ren","program":"BA Linguistics","year":"Junior","photoFileId":"1gcf8QHuy146crPHEcrrNAmsl_ct-7p9N","source":"google_form"},{"studentNumber":"202500527","lastName":"Yumul","firstName":"John Melchiezidek","middleName":"Viray","nickname":"JM","program":"BA Political Science","year":"Sophomore","photoFileId":"1nHV_ZqAbFgOxl58dFDS5rKpcexUnWy1I","source":"google_form"},{"studentNumber":"202501263","lastName":"Galla","firstName":"Andre Michael Gabrielle","middleName":"Roque","nickname":"Drey","program":"BA Political Science","year":"Sophomore","photoFileId":"1iCp9giuQtHBOAJ1GSzQMfH9zo_69qU2y","source":"google_form"},{"studentNumber":"202501589","lastName":"Cado","firstName":"Gerald Andrei","middleName":"Loteria","nickname":"Cado","program":"BA Political Science","year":"Sophomore","photoFileId":"1TOE1rwESMGyF99T61Z6hw6MsZnBBnRVY","source":"google_form"},{"studentNumber":"202503330","lastName":"Sta. Catalina","firstName":"Dennis Gabriel","middleName":"Valenzuela","nickname":"Dennis","program":"BS Statistics","year":"Sophomore","photoFileId":"1GqEHrupqrBXPMgVmuAJ9RHON0YvrrrU1","source":"google_form"},{"studentNumber":"202505366","lastName":"Pineda","firstName":"Mike Chester","middleName":"Alfaro","nickname":"Chester","program":"BA Political Science","year":"Sophomore","photoFileId":"1Bzwe_iDQ6hX57C4Zu-dtIwjdQPBs_3tx","source":"google_form"},{"studentNumber":"202506545","lastName":"Fontanilla","firstName":"Niko Rhoy","middleName":"Ramos","nickname":"Niko","program":"BA Political Science","year":"Sophomore","photoFileId":"1VJNBIhoR2Rg_VdkV22ERKl1rCNJjK6OK","source":"google_form"},{"studentNumber":"202508872","lastName":"Cleofas","firstName":"Rian Allison","middleName":"","nickname":"Rian","program":"BS Social Work","year":"Sophomore","photoFileId":"1YI577lRFBhAPQ_6xC5IGQnBWOYypBAFa","source":"google_form"},{"studentNumber":"202509826","lastName":"Gianan","firstName":"Samantha Nicole","middleName":"Sural","nickname":"Sam","program":"BS Mechanical Engineering","year":"Sophomore","photoFileId":"1vqbK7ptplkkFWLJcYvjmuIkvSqyEFmr5","source":"google_form"},{"studentNumber":"202510867","lastName":"Estavillo","firstName":"Nathaniel James","middleName":"Domingo","nickname":"Nat","program":"BA Creative Writing","year":"Sophomore","photoFileId":"1clUIR9R0QnB9gUm-WaOy6O91Ra9MJCh9","source":"google_form"},{"studentNumber":"202511370","lastName":"Justiniani","firstName":"Mary Rolyn","middleName":"Castor","nickname":"Rolyn","program":"BS Architecture","year":"Sophomore","photoFileId":"1l8dxAPHozrjKkiPMIH4JyvPJiokzebvg","source":"google_form"}];
 
 // ============================================================
 // APPLICATION STATE
@@ -577,6 +718,99 @@ function photoUrl(s, size = 800) {
   return `https://drive.google.com/thumbnail?id=${encodeURIComponent(s.photoFileId)}&sz=w${size}`;
 }
 
+let hoverPreviewTimer = null;
+let hoverPreviewHideTimer = null;
+
+function isHoverPreviewDevice(){
+  return window.matchMedia("(pointer:fine)").matches;
+}
+
+function findStudentByNumber(studentNumber){
+  return students.find(s => s.studentNumber === studentNumber);
+}
+
+function showHoverStudentPreview(studentNumber){
+  if (!isHoverPreviewDevice()) return;
+
+  const s = findStudentByNumber(studentNumber);
+  if (!s) return;
+
+  clearTimeout(hoverPreviewHideTimer);
+
+  const preview = $("hoverStudentPreview");
+  const photo = $("hoverStudentPhoto");
+  const displayName = fullName(s);
+
+  $("hoverStudentTitle").textContent =
+    s.nickname ? `${s.nickname} ${s.lastName}` : displayName;
+  $("hoverStudentName").textContent = displayName;
+  $("hoverStudentNickname").textContent =
+    s.nickname ? `“${s.nickname}”` : "Nickname not provided";
+  $("hoverStudentFullName").textContent = displayName;
+  $("hoverStudentNickname2").textContent = s.nickname || "—";
+  $("hoverStudentProgram").textContent = s.program || "—";
+  $("hoverStudentYear").textContent = s.year || "—";
+  $("hoverStudentNumber").textContent = s.studentNumber || "—";
+
+  photo.alt = displayName;
+  photo.onerror = () => {
+    photo.onerror = null;
+    photo.src = avatarUrl(s);
+  };
+  photo.src = s.photoFileId ? photoUrl(s, 900) : avatarUrl(s);
+
+  preview.classList.add("show");
+  preview.setAttribute("aria-hidden","false");
+}
+
+function scheduleHoverStudentPreview(studentNumber){
+  if (!isHoverPreviewDevice()) return;
+
+  clearTimeout(hoverPreviewTimer);
+  clearTimeout(hoverPreviewHideTimer);
+
+  // Same 1-second hover delay as the CWTS implementation.
+  hoverPreviewTimer = setTimeout(
+    () => showHoverStudentPreview(studentNumber),
+    1000
+  );
+}
+
+function hideHoverStudentPreview(){
+  clearTimeout(hoverPreviewTimer);
+  clearTimeout(hoverPreviewHideTimer);
+
+  hoverPreviewHideTimer = setTimeout(() => {
+    const preview = $("hoverStudentPreview");
+    if (preview){
+      preview.classList.remove("show");
+      preview.setAttribute("aria-hidden","true");
+    }
+  }, 80);
+}
+
+function bindPhotoHoverTargets(){
+  if (!isHoverPreviewDevice()) return;
+
+  document.querySelectorAll(
+    "#rosterCards .photo, #rosterOverview .overview-photo"
+  ).forEach(photoArea => {
+    if (photoArea.dataset.hoverBound === "1") return;
+    photoArea.dataset.hoverBound = "1";
+
+    const card = photoArea.closest(".student-card-clickable");
+    if (!card) return;
+
+    photoArea.addEventListener("mouseenter", () => {
+      scheduleHoverStudentPreview(card.dataset.studentNumber);
+    });
+
+    photoArea.addEventListener("mouseleave", () => {
+      hideHoverStudentPreview();
+    });
+  });
+}
+
 let lastFocusedStudentElement = null;
 
 function openStudentModal(s, triggerElement = null) {
@@ -589,6 +823,7 @@ function openStudentModal(s, triggerElement = null) {
   $("studentModalFullName").textContent = fullName(s);
   $("studentModalNickname").textContent = s.nickname || "—";
   $("studentModalProgram").textContent = s.program || "—";
+  $("studentModalYear").textContent = s.year || "—";
   $("studentModalStudentNumber").textContent = s.studentNumber || "—";
 
   img.classList.remove("fallback");
@@ -621,14 +856,19 @@ function closeStudentModal() {
 }
 
 function makeStudentClickable(element, student) {
-  element.classList.add("student-clickable");
+  element.classList.add("student-clickable", "student-card-clickable");
+  element.dataset.studentNumber = student.studentNumber;
   element.setAttribute("role", "button");
   element.setAttribute("tabindex", "0");
   element.setAttribute("aria-label", `View details for ${fullName(student)}`);
-  element.addEventListener("click", () => openStudentModal(student, element));
+  element.addEventListener("click", () => {
+    hideHoverStudentPreview();
+    openStudentModal(student, element);
+  });
   element.addEventListener("keydown", event => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
+      hideHoverStudentPreview();
       openStudentModal(student, element);
     }
   });
@@ -738,6 +978,8 @@ function renderRoster() {
       overviewRoot.appendChild(card);
     }
   }
+
+  bindPhotoHoverTargets();
 }
 
 function formatDate(dateString) {
@@ -969,6 +1211,18 @@ $("signInBtn").addEventListener("click", async () => {
 });
 
 $("signOutBtn").addEventListener("click", () => signOut(getAuth()));
+
+document.addEventListener("pointermove", event => {
+  if (!isHoverPreviewDevice()) return;
+
+  const overPhoto = event.target.closest &&
+    event.target.closest("#rosterCards .photo, #rosterOverview .overview-photo");
+
+  if (!overPhoto) hideHoverStudentPreview();
+});
+
+window.addEventListener("resize", hideHoverStudentPreview);
+window.addEventListener("scroll", hideHoverStudentPreview);
 
 $("studentModalClose").addEventListener("click", closeStudentModal);
 
