@@ -279,27 +279,119 @@ thead th:first-child{z-index:6;background:#f7f8fa}
 .attendance-date-header .date{font-size:12px;margin-top:2px}
 input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
 .hover-student-preview{
-  position:fixed;z-index:950;display:none;width:min(680px,calc(100vw - 24px));
-  max-height:min(82vh,760px);overflow:auto;background:#fff;
-  border:1px solid rgba(123,17,19,.18);border-radius:16px;
+  position:fixed;
+  inset:0;
+  z-index:95;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:rgba(15,23,42,.72);
+  backdrop-filter:blur(2px);
+  pointer-events:none;
+}
+.hover-student-preview.show{display:flex}
+.hover-student-preview .hover-card{
+  width:min(720px,92vw);
+  max-height:88vh;
+  overflow:auto;
+  background:#fff;
+  border:1px solid rgba(123,17,19,.18);
+  border-radius:16px;
   box-shadow:0 28px 80px rgba(0,0,0,.34);
 }
-.hover-student-preview.show{display:block}
-.hover-student-preview .hover-card{width:100%}
-.hover-student-preview .hover-header{padding:14px 18px;border-bottom:1px solid var(--line)}
-.hover-student-preview .hover-kicker{font-size:10px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
-.hover-student-preview .hover-title{font-size:20px;font-weight:800;color:#182230;margin-top:3px}
-.hover-student-preview .hover-body{display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;padding:18px}
-.hover-student-preview .hover-photo{width:100%;aspect-ratio:4/5;min-height:300px;background:#f3f5f7;border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.hover-student-preview .hover-photo img{width:100%;height:100%;object-fit:contain;display:block}
-.hover-student-preview .hover-info{display:flex;flex-direction:column;justify-content:center;min-width:0}
-.hover-student-preview .hover-name{font-size:25px;font-weight:800;line-height:1.08;color:#182230}
-.hover-student-preview .hover-nickname{margin-top:5px;font-size:16px;font-weight:700;color:var(--accent)}
-.hover-student-preview .hover-meta{margin-top:20px;display:grid;grid-template-columns:110px minmax(0,1fr);gap:11px 12px;font-size:14px;line-height:1.3}
-.hover-student-preview .hover-label{color:#667085;font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:10px}
-.hover-student-preview .hover-value{color:#182230;font-weight:650}
-@media (hover:none),(pointer:coarse){.hover-student-preview{display:none!important}}
-@media (max-width:700px){.hover-student-preview{display:none!important}}
+.hover-student-preview .hover-header{
+  padding:14px 18px;
+  border-bottom:1px solid var(--line);
+}
+.hover-student-preview .hover-kicker{
+  font-size:10px;
+  font-weight:800;
+  color:var(--accent);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.hover-student-preview .hover-title{
+  font-size:20px;
+  font-weight:800;
+  color:#182230;
+  margin-top:3px;
+}
+.hover-student-preview .hover-body{
+  display:grid;
+  grid-template-columns:280px minmax(0,1fr);
+  gap:24px;
+  padding:20px;
+}
+.hover-student-preview .hover-photo{
+  width:100%;
+  aspect-ratio:4/5;
+  min-height:340px;
+  background:#f3f5f7;
+  border:1px solid var(--line);
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+.hover-student-preview .hover-photo img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+.hover-student-preview .hover-info{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-width:0;
+}
+.hover-student-preview .hover-name{
+  font-size:27px;
+  font-weight:800;
+  line-height:1.08;
+  color:#182230;
+}
+.hover-student-preview .hover-nickname{
+  margin-top:5px;
+  font-size:17px;
+  font-weight:700;
+  color:var(--accent);
+}
+.hover-student-preview .hover-meta{
+  margin-top:22px;
+  display:grid;
+  grid-template-columns:120px minmax(0,1fr);
+  gap:12px 14px;
+  font-size:14px;
+  line-height:1.35;
+}
+.hover-student-preview .hover-label{
+  color:#667085;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  font-size:10px;
+}
+.hover-student-preview .hover-value{
+  color:#182230;
+  font-weight:650;
+}
+.student-card-clickable:hover{
+  box-shadow:0 4px 16px rgba(123,17,19,.15);
+  transform:translateY(-1px);
+}
+@media (max-width:900px){
+  .hover-student-preview .hover-body{
+    grid-template-columns:250px minmax(0,1fr);
+  }
+  .hover-student-preview .hover-photo{min-height:300px}
+}
+@media (hover:none),(pointer:coarse){
+  .hover-student-preview{display:none!important}
+}
+
 .student-modal-backdrop{
   position:fixed;inset:0;z-index:1000;background:rgba(15,23,42,.58);
   display:flex;align-items:center;justify-content:center;padding:20px;
@@ -585,7 +677,6 @@ const students = [{"studentNumber":"202205999","lastName":"Camarillo","firstName
 // ============================================================
 let currentUser = null;
 let db = null;
-let auth = null;
 let unsubscribeClass = null;
 let attendance = {};
 
@@ -597,20 +688,6 @@ function configIsReady() {
     v.trim() &&
     !v.includes("PASTE_YOUR_")
   );
-}
-
-// Initialize Firebase as soon as the module loads. This avoids a race where
-// the sign-in button becomes clickable before the Auth instance exists.
-let firebaseInitError = null;
-if (configIsReady()) {
-  try {
-    const firebaseApp = initializeApp(firebaseConfig);
-    auth = getAuth(firebaseApp);
-    db = getFirestore(firebaseApp);
-  } catch (err) {
-    console.error("Firebase initialization failed:", err);
-    firebaseInitError = err;
-  }
 }
 
 function setSync(text, state="") {
@@ -643,9 +720,6 @@ function photoUrl(s, size = 800) {
 
 let hoverPreviewTimer = null;
 let hoverPreviewHideTimer = null;
-let hoverSourceElement = null;
-let hoverCursorX = 0;
-let hoverCursorY = 0;
 
 function isHoverPreviewDevice(){
   return window.matchMedia("(pointer:fine)").matches;
@@ -655,159 +729,159 @@ function findStudentByNumber(studentNumber){
   return students.find(s => s.studentNumber === studentNumber);
 }
 
-function positionHoverStudentPreview(x,y){
-  const preview=$("hoverStudentPreview");
-  if(!preview || !preview.classList.contains("show")) return;
+function showHoverStudentPreview(studentNumber){
+  if (!isHoverPreviewDevice()) return;
 
-  const margin=12, gap=18;
-  const rect=preview.getBoundingClientRect();
-
-  let left=x-rect.width/2;
-  let top=y-rect.height/2;
-
-  left=Math.max(margin,Math.min(left,window.innerWidth-rect.width-margin));
-  top=Math.max(margin,Math.min(top,window.innerHeight-rect.height-margin));
-
-  // Keep the pointer outside the popup when possible so it can enter
-  // the popup cleanly without immediately triggering a close.
-  if(x>=left && x<=left+rect.width && y>=top && y<=top+rect.height){
-    if(x+gap+rect.width<=window.innerWidth-margin){
-      left=x+gap;
-    }else if(x-rect.width-gap>=margin){
-      left=x-rect.width-gap;
-    }
-  }
-
-  preview.style.left=`${Math.round(left)}px`;
-  preview.style.top=`${Math.round(top)}px`;
-}
-
-function showHoverStudentPreview(studentNumber,x,y){
-  if(!isHoverPreviewDevice()) return;
-  const s=findStudentByNumber(studentNumber);
-  if(!s) return;
+  const s = findStudentByNumber(studentNumber);
+  if (!s) return;
 
   clearTimeout(hoverPreviewHideTimer);
 
-  const preview=$("hoverStudentPreview");
-  const photo=$("hoverStudentPhoto");
+  const preview = $("hoverStudentPreview");
+  const photo = $("hoverStudentPhoto");
+  const displayName = fullName(s);
 
-  $("hoverStudentTitle").textContent=s.nickname ? `${s.nickname} ${s.lastName}` : fullName(s);
-  $("hoverStudentName").textContent=fullName(s);
-  $("hoverStudentNickname").textContent=s.nickname ? `“${s.nickname}”` : "Nickname not provided";
-  $("hoverStudentFullName").textContent=fullName(s);
-  $("hoverStudentNickname2").textContent=s.nickname || "—";
-  $("hoverStudentProgram").textContent=s.program || "—";
-  $("hoverStudentYear").textContent=s.year || "—";
-  $("hoverStudentNumber").textContent=s.studentNumber || "—";
+  $("hoverStudentTitle").textContent =
+    s.nickname ? `${s.nickname} ${s.lastName}` : displayName;
+  $("hoverStudentName").textContent = displayName;
+  $("hoverStudentNickname").textContent =
+    s.nickname ? `“${s.nickname}”` : "Nickname not provided";
+  $("hoverStudentFullName").textContent = displayName;
+  $("hoverStudentNickname2").textContent = s.nickname || "—";
+  $("hoverStudentProgram").textContent = s.program || "—";
+  $("hoverStudentYear").textContent = s.year || "—";
+  $("hoverStudentNumber").textContent = s.studentNumber || "—";
 
-  photo.alt=fullName(s);
-  photo.onerror=()=>{photo.onerror=null;photo.src=avatarUrl(s)};
-  photo.src=s.photoFileId ? photoUrl(s,900) : avatarUrl(s);
-
-  hoverSourceElement=document.querySelector(
-    `[data-student-number="${CSS.escape(studentNumber)}"]`
-  )?.querySelector(".photo, .overview-photo") || hoverSourceElement;
+  photo.alt = displayName;
+  photo.onerror = () => {
+    photo.onerror = null;
+    photo.src = avatarUrl(s);
+  };
+  photo.src = s.photoFileId ? photoUrl(s, 900) : avatarUrl(s);
 
   preview.classList.add("show");
   preview.setAttribute("aria-hidden","false");
-
-  requestAnimationFrame(()=>positionHoverStudentPreview(x,y));
 }
 
-function scheduleHoverStudentPreview(studentNumber,x,y,sourceElement){
-  if(!isHoverPreviewDevice()) return;
+function scheduleHoverStudentPreview(studentNumber){
+  if (!isHoverPreviewDevice()) return;
+
   clearTimeout(hoverPreviewTimer);
   clearTimeout(hoverPreviewHideTimer);
-  hoverSourceElement=sourceElement;
-  hoverCursorX=x;
-  hoverCursorY=y;
 
-  hoverPreviewTimer=setTimeout(
-    ()=>showHoverStudentPreview(studentNumber,hoverCursorX,hoverCursorY),
+  // Same 1-second hover delay as the CWTS implementation.
+  hoverPreviewTimer = setTimeout(
+    () => showHoverStudentPreview(studentNumber),
     1000
   );
 }
 
-function hideHoverStudentPreview(immediate=false){
+function hideHoverStudentPreview(){
   clearTimeout(hoverPreviewTimer);
   clearTimeout(hoverPreviewHideTimer);
 
-  const hide=()=>{
-    const preview=$("hoverStudentPreview");
-    if(!preview) return;
-    preview.classList.remove("show");
-    preview.setAttribute("aria-hidden","true");
-    hoverSourceElement=null;
-  };
-
-  if(immediate) hide();
-  else hoverPreviewHideTimer=setTimeout(hide,100);
-}
-
-function pointerInHoverZone(event){
-  const preview=$("hoverStudentPreview");
-  const inPreview=preview && preview.classList.contains("show") &&
-    event.target.closest && event.target.closest("#hoverStudentPreview");
-  const inSource=hoverSourceElement && hoverSourceElement.contains(event.target);
-  return Boolean(inPreview || inSource);
+  hoverPreviewHideTimer = setTimeout(() => {
+    const preview = $("hoverStudentPreview");
+    if (preview){
+      preview.classList.remove("show");
+      preview.setAttribute("aria-hidden","true");
+    }
+  }, 80);
 }
 
 function bindPhotoHoverTargets(){
-  if(!isHoverPreviewDevice()) return;
+  if (!isHoverPreviewDevice()) return;
 
-  document.querySelectorAll("#rosterCards .photo, #rosterOverview .overview-photo")
-    .forEach(photoArea=>{
-      if(photoArea.dataset.hoverBound==="1") return;
-      photoArea.dataset.hoverBound="1";
+  document.querySelectorAll(
+    "#rosterCards .photo, #rosterOverview .overview-photo"
+  ).forEach(photoArea => {
+    if (photoArea.dataset.hoverBound === "1") return;
+    photoArea.dataset.hoverBound = "1";
 
-      const card=photoArea.closest(".student-card-clickable");
-      if(!card) return;
-      const studentNumber=card.dataset.studentNumber;
+    const card = photoArea.closest(".student-card-clickable");
+    if (!card) return;
 
-      photoArea.addEventListener("mouseenter",event=>{
-        scheduleHoverStudentPreview(studentNumber,event.clientX,event.clientY,photoArea);
-      });
-
-      photoArea.addEventListener("mousemove",event=>{
-        hoverCursorX=event.clientX;
-        hoverCursorY=event.clientY;
-        if(!$("hoverStudentPreview").classList.contains("show")){
-          scheduleHoverStudentPreview(studentNumber,event.clientX,event.clientY,photoArea);
-        }
-      });
-
-      photoArea.addEventListener("mouseleave",event=>{
-        if(!pointerInHoverZone(event)) hideHoverStudentPreview();
-      });
+    photoArea.addEventListener("mouseenter", () => {
+      scheduleHoverStudentPreview(card.dataset.studentNumber);
     });
+
+    photoArea.addEventListener("mouseleave", () => {
+      hideHoverStudentPreview();
+    });
+  });
 }
 
+let lastFocusedStudentElement = null;
 
-$("hoverStudentPreview").addEventListener("mouseenter",event=>{
-  clearTimeout(hoverPreviewHideTimer);
-  hoverCursorX=event.clientX;
-  hoverCursorY=event.clientY;
-});
+function openStudentModal(s, triggerElement = null) {
+  lastFocusedStudentElement = triggerElement || document.activeElement;
+  const modal = $("studentModal");
+  const img = $("studentModalPhoto");
 
-$("hoverStudentPreview").addEventListener("mousemove",event=>{
-  hoverCursorX=event.clientX;
-  hoverCursorY=event.clientY;
-});
+  $("studentModalTitle").textContent =
+    s.nickname ? `${s.nickname} ${s.lastName}` : `${s.firstName} ${s.lastName}`;
+  $("studentModalFullName").textContent = fullName(s);
+  $("studentModalNickname").textContent = s.nickname || "—";
+  $("studentModalProgram").textContent = s.program || "—";
+  $("studentModalYear").textContent = s.year || "—";
+  $("studentModalStudentNumber").textContent = s.studentNumber || "—";
 
-$("hoverStudentPreview").addEventListener("mouseleave",()=>{
-  hideHoverStudentPreview();
-});
+  img.classList.remove("fallback");
+  img.alt = fullName(s);
 
-document.addEventListener("pointermove",event=>{
-  if(!isHoverPreviewDevice()) return;
-  hoverCursorX=event.clientX;
-  hoverCursorY=event.clientY;
-  if(!pointerInHoverZone(event)) hideHoverStudentPreview();
-});
+  if (s.photoFileId) {
+    img.src = photoUrl(s, 800);
+    img.onerror = () => {
+      img.onerror = null;
+      img.src = avatarUrl(s);
+      img.classList.add("fallback");
+    };
+  } else {
+    img.src = avatarUrl(s);
+    img.classList.add("fallback");
+  }
 
-window.addEventListener("resize",()=>hideHoverStudentPreview(true));
-window.addEventListener("scroll",()=>hideHoverStudentPreview(true));
+  modal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  $("studentModalClose").focus();
+}
+
+function closeStudentModal() {
+  $("studentModal").classList.add("hidden");
+  document.body.style.overflow = "";
+  if (lastFocusedStudentElement && document.contains(lastFocusedStudentElement)) {
+    lastFocusedStudentElement.focus();
+  }
+  lastFocusedStudentElement = null;
+}
+
+function makeStudentClickable(element, student) {
+  element.classList.add("student-clickable", "student-card-clickable");
+  element.dataset.studentNumber = student.studentNumber;
+  element.setAttribute("role", "button");
+  element.setAttribute("tabindex", "0");
+  element.setAttribute("aria-label", `View details for ${fullName(student)}`);
+  element.addEventListener("click", () => {
+    hideHoverStudentPreview();
+    openStudentModal(student, element);
+  });
+  element.addEventListener("keydown", event => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      hideHoverStudentPreview();
+      openStudentModal(student, element);
+    }
+  });
+}
+
+function sortedStudents() {
+  const field = $("sortField").value;
+  const dir = $("sortDirection").value === "asc" ? 1 : -1;
+  return [...students].sort((a,b) =>
+    String(a[field] ?? "").localeCompare(String(b[field] ?? ""), undefined,
+      {numeric:true, sensitivity:"base"}) * dir
+  );
+}
 
 function renderRoster() {
   const mode = $("rosterViewMode").value;
@@ -1121,8 +1195,7 @@ $("attendanceSelfBtn").addEventListener("click", showAttendanceView);
 $("signInBtn").addEventListener("click", async () => {
   $("authError").classList.add("hidden");
   try {
-    if (firebaseInitError) throw new Error("Firebase could not be initialized. Please reload the page.");
-    if (!auth) throw new Error("Firebase authentication is unavailable. Please reload the page.");
+    const auth = getAuth();
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({login_hint:"@up.edu.ph"});
     const result = await signInWithPopup(auth, provider);
@@ -1137,9 +1210,7 @@ $("signInBtn").addEventListener("click", async () => {
   }
 });
 
-$("signOutBtn").addEventListener("click", () => {
-  if (auth) signOut(auth);
-});
+$("signOutBtn").addEventListener("click", () => signOut(getAuth()));
 
 document.addEventListener("pointermove", event => {
   if (!isHoverPreviewDevice()) return;
@@ -1165,27 +1236,25 @@ document.addEventListener("keydown", event => {
   }
 });
 
-function showSetupError(message) {
+function showSetupError() {
   $("loginScreen").querySelector("p:nth-of-type(2)").textContent =
-    "Firebase configuration could not be initialized.";
+    "Firebase configuration is not filled in yet. Paste the Web App configuration below before deploying.";
   $("signInBtn").disabled = true;
   $("signInBtn").style.opacity = ".55";
-  $("authError").textContent = message;
+  $("authError").textContent =
+    "Open index.html and replace the five firebaseConfig placeholder values with the Web App configuration from Firebase Project Settings.";
   $("authError").classList.remove("hidden");
 }
 
 renderRoster();
 
 if (!configIsReady()) {
-  showSetupError(
-    "Firebase configuration is missing. Please paste the Web App configuration from Firebase Project Settings."
-  );
-} else if (firebaseInitError || !auth) {
-  console.error("Firebase Auth is unavailable:", firebaseInitError);
-  showSetupError(
-    "Firebase authentication could not be initialized. Please reload the page. If the problem persists, check the Firebase Web App configuration."
-  );
+  showSetupError();
 } else {
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  db = getFirestore(app);
+
   onAuthStateChanged(auth, user => {
     currentUser = user;
     if (!user) {
