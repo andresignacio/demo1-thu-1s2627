@@ -585,6 +585,7 @@ const students = [{"studentNumber":"202205999","lastName":"Camarillo","firstName
 // ============================================================
 let currentUser = null;
 let db = null;
+let auth = null;
 let unsubscribeClass = null;
 let attendance = {};
 
@@ -1106,7 +1107,7 @@ $("attendanceSelfBtn").addEventListener("click", showAttendanceView);
 $("signInBtn").addEventListener("click", async () => {
   $("authError").classList.add("hidden");
   try {
-    const auth = getAuth();
+    if (!auth) throw new Error("Firebase authentication is not initialized yet. Please reload the page.");
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({login_hint:"@up.edu.ph"});
     const result = await signInWithPopup(auth, provider);
@@ -1121,7 +1122,9 @@ $("signInBtn").addEventListener("click", async () => {
   }
 });
 
-$("signOutBtn").addEventListener("click", () => signOut(getAuth()));
+$("signOutBtn").addEventListener("click", () => {
+  if (auth) signOut(auth);
+});
 
 document.addEventListener("pointermove", event => {
   if (!isHoverPreviewDevice()) return;
@@ -1163,7 +1166,7 @@ if (!configIsReady()) {
   showSetupError();
 } else {
   const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+  auth = getAuth(app);
   db = getFirestore(app);
 
   onAuthStateChanged(auth, user => {
