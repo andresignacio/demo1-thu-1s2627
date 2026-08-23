@@ -322,6 +322,19 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
   color:#182230;
   margin-top:3px;
 }
+.hover-student-preview .hover-navigation-hint{
+  margin-top:6px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  font-size:10px;
+  color:#667085;
+}
+.hover-student-preview .hover-navigation-hint #hoverStudentPosition{
+  font-weight:800;
+  color:var(--accent);
+}
 .hover-student-preview .hover-body{
   display:grid;
   grid-template-columns:300px minmax(0,1fr);
@@ -472,14 +485,6 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
   border:0;background:#f2f4f7;color:#344054;width:34px;height:34px;border-radius:8px;
   font-size:20px;cursor:pointer;
 }
-.student-modal-nav{display:flex;align-items:center;gap:6px}
-.student-modal-nav-btn{
-  border:1px solid #d0d5dd;background:#f8f9fb;color:#344054;
-  width:34px;height:34px;border-radius:8px;font-size:20px;line-height:1;cursor:pointer;
-}
-.student-modal-nav-btn:hover{background:#eef2f6}
-.student-modal-nav-btn:disabled{opacity:.45;cursor:default}
-.student-modal-position{font-size:11px;color:#667085;margin-left:2px;white-space:nowrap}
 .student-modal-body{
   display:grid;grid-template-columns:minmax(180px,280px) minmax(0,1fr);
   gap:22px;padding:20px;
@@ -547,12 +552,7 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
   <div class="student-modal" role="dialog" aria-modal="true" aria-labelledby="studentModalTitle">
     <div class="student-modal-header">
       <h2 id="studentModalTitle">Student Details</h2>
-      <div class="student-modal-nav">
-        <button id="studentModalPrev" class="student-modal-nav-btn" type="button" aria-label="Previous student" title="Previous student">‹</button>
-        <span id="studentModalPosition" class="student-modal-position"></span>
-        <button id="studentModalNext" class="student-modal-nav-btn" type="button" aria-label="Next student" title="Next student">›</button>
-        <button id="studentModalClose" class="student-modal-close" type="button" aria-label="Close student details">×</button>
-      </div>
+      <button id="studentModalClose" class="student-modal-close" type="button" aria-label="Close student details">×</button>
     </div>
     <div class="student-modal-body">
       <div class="student-modal-photo">
@@ -601,6 +601,10 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
     <div class="hover-header">
       <div class="hover-kicker">Student Profile</div>
       <div id="hoverStudentTitle" class="hover-title"></div>
+      <div class="hover-navigation-hint">
+        <span id="hoverStudentPosition"></span>
+        <span>← / → to move through roster</span>
+      </div>
     </div>
     <div class="hover-body">
       <div class="hover-photo"><img id="hoverStudentPhoto" src="" alt=""></div>
@@ -892,6 +896,15 @@ function showStudentFocus(student, triggerElement=null, source="click"){
   $("hoverStudentTitle").textContent = student.nickname
     ? `${student.nickname} ${student.lastName}`
     : displayName;
+
+  const focusList = sortedStudents();
+  const focusIndex = focusList.findIndex(
+    s => s.studentNumber === student.studentNumber
+  );
+  if ($("hoverStudentPosition")) {
+    $("hoverStudentPosition").textContent =
+      focusIndex >= 0 ? `${focusIndex + 1} / ${focusList.length}` : "";
+  }
   $("hoverStudentName").textContent = displayName;
   $("hoverStudentNickname").textContent = student.nickname
     ? `“${student.nickname}”`
@@ -962,6 +975,26 @@ function closeStudentFocus(immediate=false){
     clearTimeout(hoverPreviewHideTimer);
     hoverPreviewHideTimer = setTimeout(hide, 140);
   }
+}
+
+function getActiveFocusStudentIndex(){
+  if (!activeFocusStudent) return -1;
+  return sortedStudents().findIndex(
+    s => s.studentNumber === activeFocusStudent.studentNumber
+  );
+}
+
+function cycleStudentFocus(step){
+  const list = sortedStudents();
+  if (!list.length || !activeFocusStudent) return;
+
+  const currentIndex = getActiveFocusStudentIndex();
+  if (currentIndex < 0) return;
+
+  const nextIndex = (currentIndex + step + list.length) % list.length;
+  const nextStudent = list[nextIndex];
+
+  showStudentFocus(nextStudent, null, "keyboard");
 }
 
 function updateFocusAttendance(student){
@@ -1085,8 +1118,25 @@ function bindFocusPopupBehavior(){
   });
 
   document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && preview.classList.contains("show")) {
+    if (!preview.classList.contains("show")) return;
+
+    if (event.key === "Escape") {
+      event.preventDefault();
       closeStudentFocus(true);
+      return;
+    }
+
+    const tag = document.activeElement?.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON") {
+      return;
+    }
+
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      cycleStudentFocus(-1);
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      cycleStudentFocus(1);
     }
   });
 
@@ -1116,49 +1166,7 @@ let focusOpenedByHover = false;
 
 
 
-let currentModalStudentNumber = null;
-
-function currentSortedStudentList(){
-  return sortedStudents();
-}
-
-function getCurrentModalStudentIndex(){
-  const list = currentSortedStudentList();
-  return list.findIndex(s => s.studentNumber === currentModalStudentNumber);
-}
-
-function updateStudentModalNavigation(){
-  const list = currentSortedStudentList();
-  const index = getCurrentModalStudentIndex();
-  const prevBtn = $("studentModalPrev");
-  const nextBtn = $("studentModalNext");
-  const pos = $("studentModalPosition");
-
-  if (index < 0 || !list.length) {
-    prevBtn.disabled = true;
-    nextBtn.disabled = true;
-    pos.textContent = "";
-    return;
-  }
-
-  prevBtn.disabled = list.length <= 1;
-  nextBtn.disabled = list.length <= 1;
-  pos.textContent = `${index + 1} / ${list.length}`;
-}
-
-function openStudentAtModalIndex(index){
-  const list = currentSortedStudentList();
-  if (!list.length) return;
-
-  const normalizedIndex = (index + list.length) % list.length;
-  const student = list[normalizedIndex];
-  if (!student) return;
-
-  openStudentModal(student, null, false);
-}
-
-function openStudentModal(s, triggerElement = null, focusCloseButton = true) {
-  currentModalStudentNumber = s.studentNumber;
+function openStudentModal(s, triggerElement = null) {
   lastFocusedStudentElement = triggerElement || document.activeElement;
   const modal = $("studentModal");
   const img = $("studentModalPhoto");
@@ -1239,14 +1247,12 @@ function openStudentModal(s, triggerElement = null, focusCloseButton = true) {
 
   modal.classList.remove("hidden");
   document.body.style.overflow = "hidden";
-  updateStudentModalNavigation();
-  if (focusCloseButton) $("studentModalClose").focus();
+  $("studentModalClose").focus();
 }
 
 function closeStudentModal() {
   $("studentModal").classList.add("hidden");
   document.body.style.overflow = "";
-  currentModalStudentNumber = null;
   if (lastFocusedStudentElement && document.contains(lastFocusedStudentElement)) {
     lastFocusedStudentElement.focus();
   }
@@ -1698,12 +1704,10 @@ $("rosterViewMode").addEventListener("change", () => {
 $("sortField").addEventListener("change", () => {
   renderRoster();
   renderAttendance();
-  if (!$("studentModal").classList.contains("hidden")) updateStudentModalNavigation();
 });
 $("sortDirection").addEventListener("change", () => {
   renderRoster();
   renderAttendance();
-  if (!$("studentModal").classList.contains("hidden")) updateStudentModalNavigation();
 });
 
 function showRosterView() {
@@ -1754,31 +1758,6 @@ $("signOutBtn").addEventListener("click", () => signOut(getAuth()));
 
 
 $("studentModalClose").addEventListener("click", closeStudentModal);
-$("studentModalPrev").addEventListener("click", () => {
-  const index = getCurrentModalStudentIndex();
-  if (index >= 0) openStudentAtModalIndex(index - 1);
-});
-
-$("studentModalNext").addEventListener("click", () => {
-  const index = getCurrentModalStudentIndex();
-  if (index >= 0) openStudentAtModalIndex(index + 1);
-});
-
-document.addEventListener("keydown", event => {
-  if ($("studentModal").classList.contains("hidden")) return;
-
-  if (event.key === "ArrowLeft") {
-    event.preventDefault();
-    const index = getCurrentModalStudentIndex();
-    if (index >= 0) openStudentAtModalIndex(index - 1);
-  } else if (event.key === "ArrowRight") {
-    event.preventDefault();
-    const index = getCurrentModalStudentIndex();
-    if (index >= 0) openStudentAtModalIndex(index + 1);
-  }
-});
-
-
 
 $("studentModal").addEventListener("click", event => {
   if (event.target === $("studentModal")) closeStudentModal();
