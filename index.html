@@ -316,6 +316,18 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
   text-transform:uppercase;
   letter-spacing:.06em;
 }
+.hover-focus-controls{
+  display:grid;
+  grid-template-columns:36px minmax(0,1fr) 36px;
+  align-items:center;
+  gap:8px;
+}
+.hover-focus-controls button{
+  width:36px;height:36px;border-radius:8px;border:1px solid #d0d5dd;
+  background:#f8f9fb;color:#344054;font-size:22px;line-height:1;cursor:pointer;
+}
+.hover-focus-controls button:hover{background:#eef2f6}
+.hover-focus-controls button:disabled{opacity:.35;cursor:default}
 .hover-student-preview .hover-title{
   font-size:21px;
   font-weight:800;
@@ -600,7 +612,11 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
   <div class="hover-card">
     <div class="hover-header">
       <div class="hover-kicker">Student Profile</div>
-      <div id="hoverStudentTitle" class="hover-title"></div>
+      <div class="hover-focus-controls">
+        <button id="hoverStudentPrev" type="button" aria-label="Previous student" title="Previous student">‹</button>
+        <div id="hoverStudentTitle" class="hover-title"></div>
+        <button id="hoverStudentNext" type="button" aria-label="Next student" title="Next student">›</button>
+      </div>
       <div class="hover-navigation-hint">
         <span id="hoverStudentPosition"></span>
         <span>← / → to move through roster</span>
@@ -905,6 +921,14 @@ function showStudentFocus(student, triggerElement=null, source="click"){
     $("hoverStudentPosition").textContent =
       focusIndex >= 0 ? `${focusIndex + 1} / ${focusList.length}` : "";
   }
+
+  if ($("hoverStudentPrev")) {
+    $("hoverStudentPrev").disabled = focusIndex <= 0;
+  }
+  if ($("hoverStudentNext")) {
+    $("hoverStudentNext").disabled =
+      focusIndex < 0 || focusIndex >= focusList.length - 1;
+  }
   $("hoverStudentName").textContent = displayName;
   $("hoverStudentNickname").textContent = student.nickname
     ? `“${student.nickname}”`
@@ -984,6 +1008,16 @@ function getActiveFocusStudentIndex(){
   );
 }
 
+$("hoverStudentPrev").addEventListener("click", event => {
+  event.stopPropagation();
+  cycleStudentFocus(-1);
+});
+
+$("hoverStudentNext").addEventListener("click", event => {
+  event.stopPropagation();
+  cycleStudentFocus(1);
+});
+
 function cycleStudentFocus(step){
   const list = sortedStudents();
   if (!list.length || !activeFocusStudent) return;
@@ -991,9 +1025,12 @@ function cycleStudentFocus(step){
   const currentIndex = getActiveFocusStudentIndex();
   if (currentIndex < 0) return;
 
-  const nextIndex = (currentIndex + step + list.length) % list.length;
-  const nextStudent = list[nextIndex];
+  const nextIndex = currentIndex + step;
 
+  // Stop at the ends; do not wrap from 1 → 20 or 20 → 1.
+  if (nextIndex < 0 || nextIndex >= list.length) return;
+
+  const nextStudent = list[nextIndex];
   showStudentFocus(nextStudent, null, "keyboard");
 }
 
