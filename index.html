@@ -420,6 +420,29 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
   font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#667085;
 }
 .student-detail-value{font-size:17px;font-weight:700;color:#182230;margin-top:2px}
+
+.student-modal-attendance{
+  margin-top:18px;
+  padding:12px 13px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:#f7f8fa;
+}
+.student-modal-attendance.current{
+  background:#f6b44b;
+  border-color:rgba(138,74,0,.22);
+}
+.student-modal-attendance.past{background:#ececec;border-color:#d8d8d8}
+.student-modal-attendance-title{
+  font-size:10px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.05em;color:#667085;
+}
+.student-modal-attendance.current .student-modal-attendance-title{color:#6d3b00}
+.student-modal-attendance-row{display:flex;align-items:center;gap:10px;margin-top:7px}
+.student-modal-attendance-row input{width:20px;height:20px;margin:0;cursor:pointer;accent-color:#8a4a00}
+.student-modal-attendance-row label{font-size:14px;font-weight:750;color:#182230;cursor:pointer}
+.student-modal-attendance-status{margin-top:5px;font-size:11px;color:#667085}
+.student-modal-attendance.current .student-modal-attendance-status{color:#6d3b00}
 .student-modal-note{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.4}
 .student-clickable{cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
 .student-clickable:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.10)}
@@ -428,87 +451,6 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
   .student-modal-body{grid-template-columns:1fr}
   .student-modal-photo{width:min(280px,100%);margin:0 auto}
 }
-.attendance-student-hover{
-  position:fixed;
-  z-index:96;
-  display:none;
-  width:430px;
-  max-width:min(430px,calc(100vw - 24px));
-  background:#fff;
-  border:1px solid rgba(123,17,19,.18);
-  border-radius:14px;
-  box-shadow:0 18px 50px rgba(15,23,42,.22);
-  overflow:hidden;
-  pointer-events:none;
-}
-.attendance-student-hover.show{display:block}
-.attendance-student-hover .ash-body{
-  display:grid;
-  grid-template-columns:150px minmax(0,1fr);
-  gap:18px;
-  padding:17px;
-}
-.attendance-student-hover .ash-photo{
-  width:150px;
-  height:185px;
-  background:#f3f5f7;
-  border:1px solid var(--line);
-  border-radius:10px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-}
-.attendance-student-hover .ash-photo img{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  display:block;
-}
-.attendance-student-hover .ash-kicker{
-  font-size:9px;
-  font-weight:800;
-  letter-spacing:.06em;
-  text-transform:uppercase;
-  color:var(--accent);
-}
-.attendance-student-hover .ash-name{
-  margin-top:2px;
-  font-size:22px;
-  line-height:1.08;
-  font-weight:800;
-  color:#182230;
-}
-.attendance-student-hover .ash-nick{
-  margin-top:4px;
-  font-size:14px;
-  font-weight:700;
-  color:var(--accent);
-}
-.attendance-student-hover .ash-meta{
-  margin-top:16px;
-  display:grid;
-  grid-template-columns:76px minmax(0,1fr);
-  gap:7px 8px;
-  font-size:11px;
-  line-height:1.25;
-}
-.attendance-student-hover .ash-label{
-  font-size:9px;
-  font-weight:800;
-  color:#667085;
-  text-transform:uppercase;
-  letter-spacing:.03em;
-}
-.attendance-student-hover .ash-value{
-  color:#182230;
-  font-weight:600;
-}
-@media (hover:none),(pointer:coarse){
-  .attendance-student-hover{display:none!important}
-}
-
-
 .login{max-width:520px;margin:80px auto;text-align:center}
 .login h1{margin-top:0} .login p{color:var(--muted);line-height:1.45}
 #authError{margin-top:12px}
@@ -557,6 +499,15 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
           <div class="student-detail-label">Student Number</div>
           <div id="studentModalStudentNumber" class="student-detail-value"></div>
         </div>
+        <div id="studentModalAttendance" class="student-modal-attendance">
+          <div id="studentModalAttendanceTitle" class="student-modal-attendance-title">Attendance</div>
+          <div class="student-modal-attendance-row">
+            <input id="studentModalAttendanceCheckbox" type="checkbox" aria-label="Mark attendance">
+            <label id="studentModalAttendanceLabel" for="studentModalAttendanceCheckbox"></label>
+          </div>
+          <div id="studentModalAttendanceStatus" class="student-modal-attendance-status"></div>
+        </div>
+
         <div class="student-modal-note">
           Student details are based on the DEMO 1 class roster and Google Form profile information where available.
         </div>
@@ -583,22 +534,14 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
           <div class="hover-label">Year</div><div id="hoverStudentYear" class="hover-value"></div>
           <div class="hover-label">Student No.</div><div id="hoverStudentNumber" class="hover-value"></div>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="attendanceStudentHover" class="attendance-student-hover" aria-hidden="true">
-  <div class="ash-body">
-    <div class="ash-photo"><img id="attendanceHoverPhoto" src="" alt=""></div>
-    <div>
-      <div class="ash-kicker">Student Profile</div>
-      <div id="attendanceHoverName" class="ash-name"></div>
-      <div id="attendanceHoverNick" class="ash-nick"></div>
-      <div class="ash-meta">
-        <div class="ash-label">Program</div><div id="attendanceHoverProgram" class="ash-value"></div>
-        <div class="ash-label">Year</div><div id="attendanceHoverYear" class="ash-value"></div>
-        <div class="ash-label">Student No.</div><div id="attendanceHoverNumber" class="ash-value"></div>
+        <div id="hoverStudentAttendance" class="student-modal-attendance" style="margin-top:18px;">
+          <div id="hoverStudentAttendanceTitle" class="student-modal-attendance-title">Attendance</div>
+          <div class="student-modal-attendance-row">
+            <input id="hoverStudentAttendanceCheckbox" type="checkbox" aria-label="Mark attendance">
+            <label id="hoverStudentAttendanceLabel" for="hoverStudentAttendanceCheckbox"></label>
+          </div>
+          <div id="hoverStudentAttendanceStatus" class="student-modal-attendance-status"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -888,6 +831,52 @@ function showHoverStudentPreview(studentNumber, x, y){
   };
   photo.src = s.photoFileId ? photoUrl(s, 900) : avatarUrl(s);
 
+  const hoverAttendanceBox = $("hoverStudentAttendance");
+  const hoverAttendanceCheckbox = $("hoverStudentAttendanceCheckbox");
+  const hoverAttendanceLabel = $("hoverStudentAttendanceLabel");
+  const hoverAttendanceTitle = $("hoverStudentAttendanceTitle");
+  const hoverAttendanceStatus = $("hoverStudentAttendanceStatus");
+  const hoverCurrentClassDate = getCurrentClassDate();
+
+  if (hoverCurrentClassDate) {
+    hoverAttendanceBox.className = "student-modal-attendance current";
+    hoverAttendanceTitle.textContent = `Attendance · ${formatShortDate(hoverCurrentClassDate)}`;
+    hoverAttendanceLabel.textContent = "Present today";
+    hoverAttendanceCheckbox.checked = Boolean(attendance?.[s.studentNumber]?.[hoverCurrentClassDate]);
+    hoverAttendanceCheckbox.disabled = false;
+    hoverAttendanceStatus.textContent = hoverAttendanceCheckbox.checked
+      ? "Cloud attendance marked."
+      : "Click to mark this student present.";
+  } else {
+    hoverAttendanceBox.className = "student-modal-attendance";
+    hoverAttendanceTitle.textContent = "Attendance";
+    hoverAttendanceLabel.textContent = "No class scheduled today";
+    hoverAttendanceCheckbox.checked = false;
+    hoverAttendanceCheckbox.disabled = true;
+    const nextClass = CLASS_DATES.find(d => d > getTodayString());
+    hoverAttendanceStatus.textContent = nextClass
+      ? `Next class: ${formatShortDate(nextClass)}.`
+      : "No remaining class dates.";
+  }
+
+  hoverAttendanceCheckbox.onchange = async () => {
+    if (!hoverCurrentClassDate) return;
+    hoverAttendanceCheckbox.disabled = true;
+    hoverAttendanceStatus.textContent = "Saving to cloud...";
+    try {
+      await setAttendance(s.studentNumber, hoverCurrentClassDate, hoverAttendanceCheckbox.checked);
+      hoverAttendanceStatus.textContent = hoverAttendanceCheckbox.checked
+        ? "Cloud attendance marked."
+        : "Cloud attendance cleared.";
+    } catch (err) {
+      console.error(err);
+      hoverAttendanceStatus.textContent = "Cloud save failed.";
+      hoverAttendanceCheckbox.checked = Boolean(attendance?.[s.studentNumber]?.[hoverCurrentClassDate]);
+    } finally {
+      hoverAttendanceCheckbox.disabled = false;
+    }
+  };
+
   preview.classList.add("show");
   preview.setAttribute("aria-hidden", "false");
 
@@ -1023,8 +1012,6 @@ document.addEventListener("pointermove", event => {
 });
 
 window.addEventListener("resize", () => hideHoverStudentPreview(true));
-window.addEventListener("resize", () => hideAttendanceStudentHover());
-window.addEventListener("scroll", () => hideAttendanceStudentHover());
 window.addEventListener("scroll", () => hideHoverStudentPreview(true));
 
 function openStudentModal(s, triggerElement = null) {
@@ -1054,6 +1041,52 @@ function openStudentModal(s, triggerElement = null) {
     img.src = avatarUrl(s);
     img.classList.add("fallback");
   }
+
+  const attendanceBox = $("studentModalAttendance");
+  const attendanceCheckbox = $("studentModalAttendanceCheckbox");
+  const attendanceLabel = $("studentModalAttendanceLabel");
+  const attendanceTitle = $("studentModalAttendanceTitle");
+  const attendanceStatus = $("studentModalAttendanceStatus");
+  const currentClassDate = getCurrentClassDate();
+
+  if (currentClassDate) {
+    attendanceBox.className = "student-modal-attendance current";
+    attendanceTitle.textContent = `Attendance · ${formatShortDate(currentClassDate)}`;
+    attendanceLabel.textContent = "Present today";
+    attendanceCheckbox.checked = Boolean(attendance?.[s.studentNumber]?.[currentClassDate]);
+    attendanceCheckbox.disabled = false;
+    attendanceStatus.textContent = attendanceCheckbox.checked
+      ? "Cloud attendance marked."
+      : "Click to mark this student present.";
+  } else {
+    attendanceBox.className = "student-modal-attendance";
+    attendanceTitle.textContent = "Attendance";
+    attendanceLabel.textContent = "No class scheduled today";
+    attendanceCheckbox.checked = false;
+    attendanceCheckbox.disabled = true;
+    const nextClass = CLASS_DATES.find(d => d > getTodayString());
+    attendanceStatus.textContent = nextClass
+      ? `Next class: ${formatShortDate(nextClass)}.`
+      : "No remaining class dates.";
+  }
+
+  attendanceCheckbox.onchange = async () => {
+    if (!currentClassDate) return;
+    attendanceCheckbox.disabled = true;
+    attendanceStatus.textContent = "Saving to cloud...";
+    try {
+      await setAttendance(s.studentNumber, currentClassDate, attendanceCheckbox.checked);
+      attendanceStatus.textContent = attendanceCheckbox.checked
+        ? "Cloud attendance marked."
+        : "Cloud attendance cleared.";
+    } catch (err) {
+      console.error(err);
+      attendanceStatus.textContent = "Cloud save failed.";
+      attendanceCheckbox.checked = Boolean(attendance?.[s.studentNumber]?.[currentClassDate]);
+    } finally {
+      attendanceCheckbox.disabled = false;
+    }
+  };
 
   modal.classList.remove("hidden");
   document.body.style.overflow = "hidden";
@@ -1223,77 +1256,24 @@ function getDateStatus(dateString) {
   return "future";
 }
 
-let attendanceHoverHideTimer = null;
-
-function isFinePointerDevice(){
-  return window.matchMedia("(pointer:fine)").matches;
+function getTodayString(){
+  const now = new Date();
+  return now.getFullYear() + "-" +
+    String(now.getMonth() + 1).padStart(2, "0") + "-" +
+    String(now.getDate()).padStart(2, "0");
 }
 
-function positionAttendanceStudentHover(anchor){
-  const box = $("attendanceStudentHover");
-  if (!box) return;
-
-  const rect = anchor.getBoundingClientRect();
-  const gap = 12;
-  const width = Math.min(360, window.innerWidth - 24);
-  const height = Math.min(210, window.innerHeight - 24);
-
-  let left = rect.right + gap;
-  if (left + width > window.innerWidth - 12) {
-    left = rect.left - width - gap;
-  }
-  if (left < 12) left = 12;
-
-  let top = rect.top;
-  if (top + height > window.innerHeight - 12) {
-    top = window.innerHeight - height - 12;
-  }
-  if (top < 12) top = 12;
-
-  box.style.left = `${left}px`;
-  box.style.top = `${top}px`;
+function getCurrentClassDate(){
+  const today = getTodayString();
+  return CLASS_DATES.includes(today) ? today : null;
 }
 
-function showAttendanceStudentHover(studentNumber, anchor){
-  if (!isFinePointerDevice()) return;
-  const s = findStudentByNumber(studentNumber);
-  if (!s) return;
-
-  clearTimeout(attendanceHoverHideTimer);
-
-  const box = $("attendanceStudentHover");
-  const photo = $("attendanceHoverPhoto");
-
-  const displayName = fullName(s);
-  $("attendanceHoverName").textContent = displayName;
-  $("attendanceHoverNick").textContent = s.nickname ? `“${s.nickname}”` : "Nickname not provided";
-  $("attendanceHoverProgram").textContent = s.program || "—";
-  $("attendanceHoverYear").textContent = s.year || "—";
-  $("attendanceHoverNumber").textContent = s.studentNumber || "—";
-
-  photo.alt = displayName;
-  photo.onerror = () => {
-    photo.onerror = null;
-    photo.src = avatarUrl(s);
-  };
-  photo.src = s.photoFileId ? photoUrl(s, 500) : avatarUrl(s);
-
-  box.classList.add("show");
-  box.setAttribute("aria-hidden","false");
-  positionAttendanceStudentHover(anchor);
+function formatShortDate(dateString){
+  if (!dateString) return "";
+  return new Intl.DateTimeFormat("en-PH", {
+    weekday:"short", month:"short", day:"numeric"
+  }).format(new Date(dateString + "T00:00:00"));
 }
-
-function hideAttendanceStudentHover(){
-  clearTimeout(attendanceHoverHideTimer);
-  attendanceHoverHideTimer = setTimeout(() => {
-    const box = $("attendanceStudentHover");
-    if (box){
-      box.classList.remove("show");
-      box.setAttribute("aria-hidden","true");
-    }
-  }, 60);
-}
-
 
 function renderAttendance() {
   const table = $("attendanceTable");
@@ -1362,16 +1342,6 @@ function renderAttendance() {
     studentContainer.className = "attendance-student";
     studentContainer.append(thumb, wrap);
     nameTd.appendChild(studentContainer);
-
-    if (isFinePointerDevice()) {
-      studentContainer.addEventListener("mouseenter", () => {
-        showAttendanceStudentHover(s.studentNumber, studentContainer);
-      });
-      studentContainer.addEventListener("mouseleave", () => {
-        hideAttendanceStudentHover();
-      });
-    }
-
     tr.appendChild(nameTd);
 
     for (const date of CLASS_DATES) {
