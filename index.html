@@ -280,23 +280,33 @@ thead th:first-child{z-index:6;background:#f7f8fa}
 input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
 .hover-student-preview{
   position:fixed;
+  inset:0;
   z-index:950;
   display:none;
-  width:min(720px,calc(100vw - 24px));
-  max-height:88vh;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:rgba(15,23,42,.72);
+  backdrop-filter:blur(2px);
+  pointer-events:auto;
+}
+.hover-student-preview.show{display:flex}
+.hover-student-preview .hover-card{
+  width:min(820px,92vw);
+  max-height:90vh;
   overflow:auto;
   background:#fff;
   border:1px solid rgba(123,17,19,.18);
   border-radius:16px;
   box-shadow:0 28px 80px rgba(0,0,0,.34);
-  pointer-events:auto;
-}
-.hover-student-preview.show{display:block}
-.hover-student-preview .hover-card{
-  width:100%;
+  cursor:default;
 }
 .hover-student-preview .hover-header{
-  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:15px 20px;
   border-bottom:1px solid var(--line);
 }
 .hover-student-preview .hover-kicker{
@@ -307,21 +317,21 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
   letter-spacing:.06em;
 }
 .hover-student-preview .hover-title{
-  font-size:20px;
+  font-size:21px;
   font-weight:800;
   color:#182230;
   margin-top:3px;
 }
 .hover-student-preview .hover-body{
   display:grid;
-  grid-template-columns:280px minmax(0,1fr);
-  gap:24px;
-  padding:20px;
+  grid-template-columns:300px minmax(0,1fr);
+  gap:26px;
+  padding:22px;
 }
 .hover-student-preview .hover-photo{
   width:100%;
   aspect-ratio:4/5;
-  min-height:340px;
+  min-height:360px;
   background:#f3f5f7;
   border:1px solid var(--line);
   border-radius:12px;
@@ -343,7 +353,7 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
   min-width:0;
 }
 .hover-student-preview .hover-name{
-  font-size:27px;
+  font-size:28px;
   font-weight:800;
   line-height:1.08;
   color:#182230;
@@ -373,20 +383,77 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
   color:#182230;
   font-weight:650;
 }
-.student-card-clickable:hover{
-  box-shadow:0 4px 16px rgba(123,17,19,.15);
-  transform:translateY(-1px);
+
+/* Use the same current-date color treatment in the focus popup and Attendance Tracker. */
+.attendance-current,
+.student-modal-attendance.current{
+  background:#ead8d9!important;
+  border-color:#7b1113!important;
+  color:#5f0d0f!important;
 }
-@media (max-width:900px){
-  .hover-student-preview .hover-body{
-    grid-template-columns:250px minmax(0,1fr);
-  }
-  .hover-student-preview .hover-photo{min-height:300px}
+.attendance-current input[type=checkbox],
+.student-modal-attendance.current input[type=checkbox]{
+  accent-color:#7b1113;
 }
-@media (hover:none),(pointer:coarse){
-  .hover-student-preview{display:none!important}
+.student-modal-attendance.current .student-modal-attendance-title,
+.student-modal-attendance.current .student-modal-attendance-status{
+  color:#6b0f12;
 }
 
+/* Compact, non-dimming hover preview for the Attendance Tracker student cell. */
+.attendance-row-preview{
+  position:fixed;
+  z-index:900;
+  display:none;
+  width:min(360px,calc(100vw - 24px));
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:12px;
+  box-shadow:0 14px 40px rgba(0,0,0,.18);
+  overflow:hidden;
+}
+.attendance-row-preview.show{display:block}
+.attendance-row-preview .row-preview-body{
+  display:grid;
+  grid-template-columns:100px minmax(0,1fr);
+  gap:14px;
+  padding:14px;
+}
+.attendance-row-preview .row-preview-photo{
+  width:100px;
+  height:125px;
+  border-radius:8px;
+  overflow:hidden;
+  background:#eef1f5;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.attendance-row-preview .row-preview-photo img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+.attendance-row-preview .row-preview-name{
+  font-size:16px;
+  font-weight:800;
+  line-height:1.12;
+  color:#182230;
+}
+.attendance-row-preview .row-preview-nickname{
+  margin-top:3px;
+  color:var(--accent);
+  font-size:13px;
+  font-weight:700;
+}
+.attendance-row-preview .row-preview-meta{margin-top:11px;display:grid;grid-template-columns:74px 1fr;gap:6px 8px;font-size:11px;line-height:1.25}
+.attendance-row-preview .row-preview-label{color:#667085;font-weight:800;text-transform:uppercase;letter-spacing:.035em}
+.attendance-row-preview .row-preview-value{color:#182230;font-weight:650}
+
+@media (max-width:900px){
+  .hover-student-preview .hover-body{grid-template-columns:250px minmax(0,1fr)}
+  .hover-student-preview .hover-photo{min-height:300px}
+}
 .student-modal-backdrop{
   position:fixed;inset:0;z-index:1000;background:rgba(15,23,42,.58);
   display:flex;align-items:center;justify-content:center;padding:20px;
@@ -542,6 +609,22 @@ input[type=checkbox]{width:19px;height:19px;cursor:pointer;accent-color:#7b1113}
           </div>
           <div id="hoverStudentAttendanceStatus" class="student-modal-attendance-status"></div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="attendanceRowPreview" class="attendance-row-preview" aria-hidden="true">
+  <div class="row-preview-body">
+    <div class="row-preview-photo"><img id="attendanceRowPreviewPhoto" src="" alt=""></div>
+    <div>
+      <div id="attendanceRowPreviewName" class="row-preview-name"></div>
+      <div id="attendanceRowPreviewNickname" class="row-preview-nickname"></div>
+      <div class="row-preview-meta">
+        <div class="row-preview-label">Full Name</div><div id="attendanceRowPreviewFullName" class="row-preview-value"></div>
+        <div class="row-preview-label">Program</div><div id="attendanceRowPreviewProgram" class="row-preview-value"></div>
+        <div class="row-preview-label">Year</div><div id="attendanceRowPreviewYear" class="row-preview-value"></div>
+        <div class="row-preview-label">Student No.</div><div id="attendanceRowPreviewNumber" class="row-preview-value"></div>
       </div>
     </div>
   </div>
@@ -755,9 +838,8 @@ function photoUrl(s, size = 800) {
 
 let hoverPreviewTimer = null;
 let hoverPreviewHideTimer = null;
-let hoverSourceElement = null;
-let hoverCursorX = 0;
-let hoverCursorY = 0;
+let focusGraceTimer = null;
+let activeFocusStudent = null;
 
 function isHoverPreviewDevice(){
   return window.matchMedia("(pointer:fine)").matches;
@@ -767,252 +849,259 @@ function findStudentByNumber(studentNumber){
   return students.find(s => s.studentNumber === studentNumber);
 }
 
-function positionHoverStudentPreview(x, y){
-  const preview = $("hoverStudentPreview");
-  if (!preview || !preview.classList.contains("show")) return;
-
-  const margin = 12;
-  const gap = 18;
-  const rect = preview.getBoundingClientRect();
-
-  // Prefer centering the preview on the cursor.
-  let left = x - rect.width / 2;
-  let top = y - rect.height / 2;
-
-  // Keep it entirely inside the viewport.
-  left = Math.max(margin, Math.min(left, window.innerWidth - rect.width - margin));
-  top = Math.max(margin, Math.min(top, window.innerHeight - rect.height - margin));
-
-  // If centering would put the pointer inside the panel, shift it to one side
-  // so the pointer can move cleanly from the source photo into the panel.
-  const pointerInside =
-    x >= left && x <= left + rect.width &&
-    y >= top && y <= top + rect.height;
-
-  if (pointerInside) {
-    if (x + gap + rect.width <= window.innerWidth - margin) {
-      left = x + gap;
-    } else if (x - rect.width - gap >= margin) {
-      left = x - rect.width - gap;
+function scheduleFocusHide(delay=180){
+  clearTimeout(hoverPreviewHideTimer);
+  hoverPreviewHideTimer = setTimeout(() => {
+    const preview = $("hoverStudentPreview");
+    if (preview){
+      preview.classList.remove("show");
+      preview.setAttribute("aria-hidden", "true");
     }
-  }
-
-  preview.style.left = `${Math.round(left)}px`;
-  preview.style.top = `${Math.round(top)}px`;
+    activeFocusStudent = null;
+    focusOpenedByHover = false;
+  }, delay);
 }
 
-function showHoverStudentPreview(studentNumber, x, y){
-  if (!isHoverPreviewDevice()) return;
-
-  const s = findStudentByNumber(studentNumber);
-  if (!s) return;
-
+function showStudentFocus(student, triggerElement=null, source="click"){
+  clearTimeout(hoverPreviewTimer);
   clearTimeout(hoverPreviewHideTimer);
+  clearTimeout(focusGraceTimer);
+
+  activeFocusStudent = student;
+  focusOpenedByHover = (source === "hover");
+  if (triggerElement) lastFocusedStudentElement = triggerElement;
 
   const preview = $("hoverStudentPreview");
+  const card = preview.querySelector(".hover-card");
   const photo = $("hoverStudentPhoto");
-  const displayName = fullName(s);
+  const displayName = fullName(student);
 
-  $("hoverStudentTitle").textContent =
-    s.nickname ? `${s.nickname} ${s.lastName}` : displayName;
+  $("hoverStudentTitle").textContent = student.nickname
+    ? `${student.nickname} ${student.lastName}`
+    : displayName;
   $("hoverStudentName").textContent = displayName;
-  $("hoverStudentNickname").textContent =
-    s.nickname ? `“${s.nickname}”` : "Nickname not provided";
+  $("hoverStudentNickname").textContent = student.nickname
+    ? `“${student.nickname}”`
+    : "Nickname not provided";
   $("hoverStudentFullName").textContent = displayName;
-  $("hoverStudentNickname2").textContent = s.nickname || "—";
-  $("hoverStudentProgram").textContent = s.program || "—";
-  $("hoverStudentYear").textContent = s.year || "—";
-  $("hoverStudentNumber").textContent = s.studentNumber || "—";
+  $("hoverStudentNickname2").textContent = student.nickname || "—";
+  $("hoverStudentProgram").textContent = student.program || "—";
+  $("hoverStudentYear").textContent = student.year || "—";
+  $("hoverStudentNumber").textContent = student.studentNumber || "—";
 
   photo.alt = displayName;
   photo.onerror = () => {
     photo.onerror = null;
-    photo.src = avatarUrl(s);
+    photo.src = avatarUrl(student);
   };
-  photo.src = s.photoFileId ? photoUrl(s, 900) : avatarUrl(s);
+  photo.src = student.photoFileId ? photoUrl(student, 900) : avatarUrl(student);
 
-  const hoverAttendanceBox = $("hoverStudentAttendance");
-  const hoverAttendanceCheckbox = $("hoverStudentAttendanceCheckbox");
-  const hoverAttendanceLabel = $("hoverStudentAttendanceLabel");
-  const hoverAttendanceTitle = $("hoverStudentAttendanceTitle");
-  const hoverAttendanceStatus = $("hoverStudentAttendanceStatus");
-  const hoverCurrentClassDate = getCurrentClassDate();
-
-  if (hoverCurrentClassDate) {
-    hoverAttendanceBox.className = "student-modal-attendance current";
-    hoverAttendanceTitle.textContent = `Attendance · ${formatShortDate(hoverCurrentClassDate)}`;
-    hoverAttendanceLabel.textContent = "Present today";
-    hoverAttendanceCheckbox.checked = Boolean(attendance?.[s.studentNumber]?.[hoverCurrentClassDate]);
-    hoverAttendanceCheckbox.disabled = false;
-    hoverAttendanceStatus.textContent = hoverAttendanceCheckbox.checked
-      ? "Cloud attendance marked."
-      : "Click to mark this student present.";
-  } else {
-    hoverAttendanceBox.className = "student-modal-attendance";
-    hoverAttendanceTitle.textContent = "Attendance";
-    hoverAttendanceLabel.textContent = "No class scheduled today";
-    hoverAttendanceCheckbox.checked = false;
-    hoverAttendanceCheckbox.disabled = true;
-    const nextClass = CLASS_DATES.find(d => d > getTodayString());
-    hoverAttendanceStatus.textContent = nextClass
-      ? `Next class: ${formatShortDate(nextClass)}.`
-      : "No remaining class dates.";
-  }
-
-  hoverAttendanceCheckbox.onchange = async () => {
-    if (!hoverCurrentClassDate) return;
-    hoverAttendanceCheckbox.disabled = true;
-    hoverAttendanceStatus.textContent = "Saving to cloud...";
-    try {
-      await setAttendance(s.studentNumber, hoverCurrentClassDate, hoverAttendanceCheckbox.checked);
-      hoverAttendanceStatus.textContent = hoverAttendanceCheckbox.checked
-        ? "Cloud attendance marked."
-        : "Cloud attendance cleared.";
-    } catch (err) {
-      console.error(err);
-      hoverAttendanceStatus.textContent = "Cloud save failed.";
-      hoverAttendanceCheckbox.checked = Boolean(attendance?.[s.studentNumber]?.[hoverCurrentClassDate]);
-    } finally {
-      hoverAttendanceCheckbox.disabled = false;
-    }
-  };
+  updateFocusAttendance(student);
 
   preview.classList.add("show");
   preview.setAttribute("aria-hidden", "false");
 
-  // Position only after the popup has been rendered so dimensions are known.
-  requestAnimationFrame(() => positionHoverStudentPreview(x, y));
+  // Give the pointer a short grace period to travel from the source photo
+  // into the white profile box after the centered overlay appears. This also
+  // prevents a desktop click from being immediately dismissed by the overlay.
+  if (isHoverPreviewDevice()) {
+    const grace = source === "hover" ? 900 : 1200;
+    focusGraceUntil = Date.now() + grace;
+    focusGraceTimer = setTimeout(() => { focusGraceUntil = 0; }, grace);
+  } else {
+    focusGraceUntil = 0;
+  }
+
+  requestAnimationFrame(() => card.focus?.({preventScroll:true}));
 }
 
-function scheduleHoverStudentPreview(studentNumber, x, y, sourceElement){
+function scheduleStudentFocus(student, triggerElement){
   if (!isHoverPreviewDevice()) return;
 
   clearTimeout(hoverPreviewTimer);
   clearTimeout(hoverPreviewHideTimer);
+  clearTimeout(focusGraceTimer);
+  activeFocusStudent = student;
+  lastFocusedStudentElement = triggerElement || null;
 
-  hoverSourceElement = sourceElement;
-  hoverCursorX = x;
-  hoverCursorY = y;
-
-  // Preserve the working CWTS 1-second reveal delay.
-  hoverPreviewTimer = setTimeout(
-    () => showHoverStudentPreview(studentNumber, hoverCursorX, hoverCursorY),
-    1000
-  );
+  hoverPreviewTimer = setTimeout(() => {
+    showStudentFocus(student, triggerElement, "hover");
+  }, 1000);
 }
 
-function hideHoverStudentPreview(immediate = false){
+function closeStudentFocus(immediate=false){
   clearTimeout(hoverPreviewTimer);
   clearTimeout(hoverPreviewHideTimer);
+  clearTimeout(focusGraceTimer);
+
+  const preview = $("hoverStudentPreview");
+  if (!preview) return;
 
   const hide = () => {
-    const preview = $("hoverStudentPreview");
-    if (!preview) return;
-
     preview.classList.remove("show");
     preview.setAttribute("aria-hidden", "true");
-    hoverSourceElement = null;
+    activeFocusStudent = null;
+    focusOpenedByHover = false;
   };
 
-  if (immediate) {
-    hide();
-  } else {
-    hoverPreviewHideTimer = setTimeout(hide, 100);
+  if (immediate) hide();
+  else {
+    clearTimeout(hoverPreviewHideTimer);
+    hoverPreviewHideTimer = setTimeout(hide, 140);
   }
 }
 
-function pointerInHoverZone(event){
-  const preview = $("hoverStudentPreview");
-  const inPreview =
-    preview &&
-    preview.classList.contains("show") &&
-    event.target.closest &&
-    event.target.closest("#hoverStudentPreview");
+function updateFocusAttendance(student){
+  const box = $("hoverStudentAttendance");
+  const checkbox = $("hoverStudentAttendanceCheckbox");
+  const label = $("hoverStudentAttendanceLabel");
+  const title = $("hoverStudentAttendanceTitle");
+  const status = $("hoverStudentAttendanceStatus");
+  const currentClassDate = getCurrentClassDate();
 
-  const inSource =
-    hoverSourceElement &&
-    hoverSourceElement.contains(event.target);
+  // Non-class days are completely disabled and cannot save attendance.
+  if (!currentClassDate) {
+    box.className = "student-modal-attendance";
+    title.textContent = "Today's Attendance";
+    label.textContent = "No class scheduled today";
+    checkbox.disabled = true;
+    checkbox.checked = false;
+    status.textContent = CLASS_DATES.find(d => d > getTodayString())
+      ? `Next class: ${formatShortDate(CLASS_DATES.find(d => d > getTodayString()))}.`
+      : "No remaining class dates.";
+    return;
+  }
 
-  return Boolean(inPreview || inSource);
+  box.className = "student-modal-attendance current";
+  title.textContent = `Today's Attendance · ${formatShortDate(currentClassDate)}`;
+  label.textContent = "Present today";
+  checkbox.disabled = false;
+  checkbox.checked = Boolean(attendance?.[student.studentNumber]?.[currentClassDate]);
+  status.textContent = checkbox.checked
+    ? "Cloud attendance marked."
+    : "Click to mark this student present.";
+
+  checkbox.onchange = async () => {
+    // Function-level protection: the save path also refuses non-class dates.
+    if (!getCurrentClassDate() || getCurrentClassDate() !== currentClassDate) {
+      checkbox.disabled = true;
+      checkbox.checked = false;
+      status.textContent = "No class scheduled today.";
+      return;
+    }
+
+    checkbox.disabled = true;
+    status.textContent = "Saving to cloud...";
+
+    try {
+      const saved = await setAttendance(
+        student.studentNumber,
+        currentClassDate,
+        checkbox.checked
+      );
+      if (!saved) {
+        checkbox.checked = Boolean(attendance?.[student.studentNumber]?.[currentClassDate]);
+        status.textContent = "No class scheduled today.";
+      } else {
+        status.textContent = checkbox.checked
+          ? "Cloud attendance marked."
+          : "Cloud attendance cleared.";
+      }
+    } catch (err) {
+      console.error(err);
+      checkbox.checked = Boolean(attendance?.[student.studentNumber]?.[currentClassDate]);
+      status.textContent = "Cloud save failed.";
+    } finally {
+      checkbox.disabled = false;
+    }
+  };
 }
 
-function bindPhotoHoverTargets(){
-  if (!isHoverPreviewDevice()) return;
+function bindStudentPhotoFocusTargets(){
+  document.querySelectorAll("#rosterCards .photo, #rosterOverview .overview-photo")
+    .forEach(photoArea => {
+      if (photoArea.dataset.focusBound === "1") return;
+      photoArea.dataset.focusBound = "1";
 
-  document.querySelectorAll(
-    "#rosterCards .photo, #rosterOverview .overview-photo"
-  ).forEach(photoArea => {
-    if (photoArea.dataset.hoverBound === "1") return;
-    photoArea.dataset.hoverBound = "1";
+      const card = photoArea.closest(".student-card-clickable");
+      if (!card) return;
+      const student = findStudentByNumber(card.dataset.studentNumber);
+      if (!student) return;
 
-    const card = photoArea.closest(".student-card-clickable");
-    if (!card) return;
+      // Desktop/laptop hover: actual PHOTO only, 1-second delay.
+      photoArea.addEventListener("mouseenter", () => {
+        if (isHoverPreviewDevice()) scheduleStudentFocus(student, photoArea);
+      });
 
-    const studentNumber = card.dataset.studentNumber;
+      photoArea.addEventListener("mouseleave", () => {
+        if (isHoverPreviewDevice() && activeFocusStudent === student && focusOpenedByHover) {
+          // Grace period for moving from the source photo into the focus box.
+          scheduleFocusHide(900);
+        } else {
+          clearTimeout(hoverPreviewTimer);
+        }
+      });
 
-    photoArea.addEventListener("mouseenter", event => {
-      scheduleHoverStudentPreview(
-        studentNumber,
-        event.clientX,
-        event.clientY,
-        photoArea
-      );
+      // Click/tap on the PHOTO uses the exact same large focus presentation.
+      photoArea.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        clearTimeout(hoverPreviewTimer);
+        showStudentFocus(student, photoArea, "click");
+      });
     });
+}
 
-    photoArea.addEventListener("mousemove", event => {
-      hoverCursorX = event.clientX;
-      hoverCursorY = event.clientY;
+function bindFocusPopupBehavior(){
+  const preview = $("hoverStudentPreview");
+  const card = preview.querySelector(".hover-card");
 
-      if (!$("hoverStudentPreview").classList.contains("show")) {
-        scheduleHoverStudentPreview(
-          studentNumber,
-          event.clientX,
-          event.clientY,
-          photoArea
-        );
-      }
-    });
-
-    photoArea.addEventListener("mouseleave", event => {
-      if (!pointerInHoverZone(event)) {
-        hideHoverStudentPreview();
-      }
-    });
+  // IMPORTANT: mouseleave is attached to the actual white profile box,
+  // not the full-screen overlay.
+  card.addEventListener("mouseenter", () => {
+    clearTimeout(hoverPreviewHideTimer);
+    clearTimeout(focusGraceTimer);
   });
+
+  card.addEventListener("mouseleave", () => {
+    if (isHoverPreviewDevice()) scheduleFocusHide(140);
+  });
+
+  preview.addEventListener("click", event => {
+    if (event.target === preview) closeStudentFocus(true);
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && preview.classList.contains("show")) {
+      closeStudentFocus(true);
+    }
+  });
+
+  // Do not use mouseleave on the full-screen overlay. Once the grace
+  // period has elapsed, pointer movement outside the actual white box
+  // closes the focus popup.
+  preview.addEventListener("pointermove", event => {
+    if (!isHoverPreviewDevice() || !preview.classList.contains("show")) return;
+    if (Date.now() < focusGraceUntil) return;
+    if (!event.target.closest(".hover-card")) {
+      closeStudentFocus(true);
+    }
+  });
+}
+
+function showStudentModalFromCard(s, element){
+  clearTimeout(hoverPreviewTimer);
+  closeStudentFocus(true);
+  openStudentModal(s, element);
 }
 
 
 
 let lastFocusedStudentElement = null;
+let focusGraceUntil = 0;
+let focusOpenedByHover = false;
 
-$("hoverStudentPreview").addEventListener("mouseenter", event => {
-  clearTimeout(hoverPreviewHideTimer);
-  hoverCursorX = event.clientX;
-  hoverCursorY = event.clientY;
-});
 
-$("hoverStudentPreview").addEventListener("mousemove", event => {
-  hoverCursorX = event.clientX;
-  hoverCursorY = event.clientY;
-});
-
-$("hoverStudentPreview").addEventListener("mouseleave", () => {
-  hideHoverStudentPreview();
-});
-
-document.addEventListener("pointermove", event => {
-  if (!isHoverPreviewDevice()) return;
-
-  hoverCursorX = event.clientX;
-  hoverCursorY = event.clientY;
-
-  if (!pointerInHoverZone(event)) {
-    hideHoverStudentPreview();
-  }
-});
-
-window.addEventListener("resize", () => hideHoverStudentPreview(true));
-window.addEventListener("scroll", () => hideHoverStudentPreview(true));
 
 function openStudentModal(s, triggerElement = null) {
   lastFocusedStudentElement = triggerElement || document.activeElement;
@@ -1071,7 +1160,12 @@ function openStudentModal(s, triggerElement = null) {
   }
 
   attendanceCheckbox.onchange = async () => {
-    if (!currentClassDate) return;
+    if (!currentClassDate || !CLASS_DATES.includes(currentClassDate)) {
+      attendanceCheckbox.disabled = true;
+      attendanceCheckbox.checked = false;
+      attendanceStatus.textContent = "No class scheduled today.";
+      return;
+    }
     attendanceCheckbox.disabled = true;
     attendanceStatus.textContent = "Saving to cloud...";
     try {
@@ -1109,15 +1203,12 @@ function makeStudentClickable(element, student) {
   element.setAttribute("tabindex", "0");
   element.setAttribute("aria-label", `View details for ${fullName(student)}`);
   element.addEventListener("click", () => {
-    hideHoverStudentPreview(true);
-    openStudentModal(student, element);
+    showStudentModalFromCard(student, element);
   });
   element.addEventListener("keydown", event => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      hideHoverStudentPreview();
-      hideHoverStudentPreview(true);
-      openStudentModal(student, element);
+      showStudentModalFromCard(student, element);
     }
   });
 }
@@ -1227,7 +1318,7 @@ function renderRoster() {
     }
   }
 
-  bindPhotoHoverTargets();
+  bindStudentPhotoFocusTargets();
 }
 
 function formatDate(dateString) {
@@ -1274,6 +1365,123 @@ function formatShortDate(dateString){
     weekday:"short", month:"short", day:"numeric"
   }).format(new Date(dateString + "T00:00:00"));
 }
+
+
+let attendanceRowHoverTimer = null;
+let attendanceRowHoverHideTimer = null;
+let attendanceRowHoverStudent = null;
+
+function positionAttendanceRowPreview(event){
+  const preview = $("attendanceRowPreview");
+  if (!preview.classList.contains("show")) return;
+
+  const margin = 12;
+  const gap = 14;
+  const rect = preview.getBoundingClientRect();
+
+  let left = event.clientX + gap;
+  let top = event.clientY - rect.height / 2;
+
+  if (left + rect.width > window.innerWidth - margin) {
+    left = event.clientX - rect.width - gap;
+  }
+  left = Math.max(margin, Math.min(left, window.innerWidth - rect.width - margin));
+  top = Math.max(margin, Math.min(top, window.innerHeight - rect.height - margin));
+
+  preview.style.left = `${Math.round(left)}px`;
+  preview.style.top = `${Math.round(top)}px`;
+}
+
+function showAttendanceRowPreview(student, event){
+  if (!isHoverPreviewDevice()) return;
+
+  const preview = $("attendanceRowPreview");
+  const img = $("attendanceRowPreviewPhoto");
+  const displayName = fullName(student);
+
+  attendanceRowHoverStudent = student;
+  $("attendanceRowPreviewName").textContent = displayName;
+  $("attendanceRowPreviewNickname").textContent = student.nickname
+    ? `“${student.nickname}”`
+    : "Nickname not provided";
+  $("attendanceRowPreviewFullName").textContent = displayName;
+  $("attendanceRowPreviewProgram").textContent = student.program || "—";
+  $("attendanceRowPreviewYear").textContent = student.year || "—";
+  $("attendanceRowPreviewNumber").textContent = student.studentNumber || "—";
+
+  img.alt = displayName;
+  img.onerror = () => {
+    img.onerror = null;
+    img.src = avatarUrl(student);
+  };
+  img.src = student.photoFileId ? photoUrl(student, 300) : avatarUrl(student);
+
+  preview.classList.add("show");
+  preview.setAttribute("aria-hidden", "false");
+  requestAnimationFrame(() => positionAttendanceRowPreview(event));
+}
+
+function scheduleAttendanceRowPreview(student, event){
+  if (!isHoverPreviewDevice()) return;
+
+  clearTimeout(attendanceRowHoverTimer);
+  clearTimeout(attendanceRowHoverHideTimer);
+  attendanceRowHoverStudent = student;
+
+  attendanceRowHoverTimer = setTimeout(() => {
+    showAttendanceRowPreview(student, event);
+  }, 300);
+}
+
+function hideAttendanceRowPreview(immediate=false){
+  clearTimeout(attendanceRowHoverTimer);
+  clearTimeout(attendanceRowHoverHideTimer);
+
+  const hide = () => {
+    const preview = $("attendanceRowPreview");
+    preview.classList.remove("show");
+    preview.setAttribute("aria-hidden", "true");
+    attendanceRowHoverStudent = null;
+  };
+
+  if (immediate) hide();
+  else attendanceRowHoverHideTimer = setTimeout(hide, 100);
+}
+
+function bindAttendanceRowHoverTargets(){
+  if (!isHoverPreviewDevice()) return;
+
+  document.querySelectorAll("#attendanceTable .attendance-student")
+    .forEach(target => {
+      if (target.dataset.rowHoverBound === "1") return;
+      target.dataset.rowHoverBound = "1";
+
+      const row = target.closest("tr");
+      const numberNode = row?.querySelector(".student-sub");
+      const studentNumber = numberNode?.textContent?.trim();
+      const student = findStudentByNumber(studentNumber);
+      if (!student) return;
+
+      target.addEventListener("mouseenter", event => {
+        scheduleAttendanceRowPreview(student, event);
+      });
+      target.addEventListener("mousemove", event => {
+        if ($("attendanceRowPreview").classList.contains("show")) {
+          positionAttendanceRowPreview(event);
+        }
+      });
+      target.addEventListener("mouseleave", () => {
+        hideAttendanceRowPreview();
+      });
+    });
+}
+
+$("attendanceRowPreview").addEventListener("mouseenter", () => {
+  clearTimeout(attendanceRowHoverHideTimer);
+});
+$("attendanceRowPreview").addEventListener("mouseleave", () => {
+  hideAttendanceRowPreview();
+});
 
 function renderAttendance() {
   const table = $("attendanceTable");
@@ -1362,6 +1570,7 @@ function renderAttendance() {
     tbody.appendChild(tr);
   }
   table.appendChild(tbody);
+  bindAttendanceRowHoverTargets();
 }
 
 function classDoc() {
@@ -1398,9 +1607,13 @@ async function saveClassState(extra={}) {
 }
 
 async function setAttendance(studentNumber, date, checked) {
+  if (!CLASS_DATES.includes(date)) {
+    return false;
+  }
   if (!attendance[studentNumber]) attendance[studentNumber] = {};
   attendance[studentNumber][date] = checked;
   await saveClassState();
+  return true;
 }
 
 function subscribeClassState() {
@@ -1479,17 +1692,7 @@ $("signInBtn").addEventListener("click", async () => {
 
 $("signOutBtn").addEventListener("click", () => signOut(getAuth()));
 
-document.addEventListener("pointermove", event => {
-  if (!isHoverPreviewDevice()) return;
 
-  const overPhoto = event.target.closest &&
-    event.target.closest("#rosterCards .photo, #rosterOverview .overview-photo");
-
-  if (!overPhoto) hideHoverStudentPreview();
-});
-
-window.addEventListener("resize", hideHoverStudentPreview);
-window.addEventListener("scroll", hideHoverStudentPreview);
 
 $("studentModalClose").addEventListener("click", closeStudentModal);
 
@@ -1513,6 +1716,7 @@ function showSetupError() {
   $("authError").classList.remove("hidden");
 }
 
+bindFocusPopupBehavior();
 renderRoster();
 
 if (!configIsReady()) {
