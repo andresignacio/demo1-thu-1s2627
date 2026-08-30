@@ -1676,9 +1676,9 @@ function renderAttendance() {
         if (status === "past") {
           const action = requestedState ? "PRESENT" : "ABSENT";
           const confirmed = window.confirm(
-            `This is a past attendance date.\\n\\n` +
-            `${displayName}\\n` +
-            `${formatDate(date)}\\n\\n` +
+            `This is a past attendance date.\n\n` +
+            `${displayName}\n` +
+            `${formatDate(date)}\n\n` +
             `Do you want to mark ${action} for this student?`
           );
 
