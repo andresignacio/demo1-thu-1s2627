@@ -1669,7 +1669,34 @@ function renderAttendance() {
       cb.type = "checkbox";
       cb.checked = Boolean(attendance?.[s.studentNumber]?.[date]);
       cb.setAttribute("aria-label", `Attendance for ${displayName} on ${formatDate(date)}`);
-      cb.addEventListener("change", () => setAttendance(s.studentNumber, date, cb.checked));
+      cb.addEventListener("change", async () => {
+        const requestedState = cb.checked;
+
+        // Match the CWTS confirmation behavior for past dates.
+        if (status === "past") {
+          const action = requestedState ? "PRESENT" : "ABSENT";
+          const confirmed = window.confirm(
+            `This is a past attendance date.\\n\\n` +
+            `${displayName}\\n` +
+            `${formatDate(date)}\\n\\n` +
+            `Do you want to mark ${action} for this student?`
+          );
+
+          // Cancel: restore the original state and do not save anything.
+          if (!confirmed) {
+            cb.checked = !requestedState;
+            return;
+          }
+        }
+
+        try {
+          await setAttendance(s.studentNumber, date, requestedState);
+        } catch (err) {
+          console.error(err);
+          // Restore the prior checkbox state if the cloud save fails.
+          cb.checked = !requestedState;
+        }
+      });
       td.appendChild(cb);
       tr.appendChild(td);
     }
